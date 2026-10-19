@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,57 +5,133 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101522">
 <title>NEXO — Conexões</title>
+
 <style>
 *{box-sizing:border-box}
-:root{--bg:#101522;--panel:#171f30;--card:#202a3d;--purple:#8070ff;--mint:#55ddc7;--muted:#9caac3;--line:#2b354a}
-body{margin:0;background:var(--bg);color:#f5f7ff;font-family:Arial,sans-serif;height:100dvh;overflow:hidden}
+:root{
+ --bg:#101522;--panel:#171f30;--card:#202a3d;
+ --purple:#8070ff;--mint:#55ddc7;--muted:#9caac3;--line:#2b354a
+}
+body{
+ margin:0;background:var(--bg);color:#f5f7ff;
+ font-family:Arial,sans-serif;height:100dvh;overflow:hidden
+}
 button,input{font:inherit}
 button{cursor:pointer}
 .app{display:flex;height:100%;max-width:1200px;margin:auto}
-.sidebar{width:320px;flex-shrink:0;background:#141b29;border-right:1px solid var(--line);display:flex;flex-direction:column}
+.sidebar{
+ width:320px;flex-shrink:0;background:#141b29;
+ border-right:1px solid var(--line);display:flex;flex-direction:column
+}
 .brand{padding:20px;display:flex;align-items:center;gap:12px}
-.logo{width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,#8070ff,#42d9cf);display:grid;place-items:center;font-size:25px;font-weight:bold}
+.logo{
+ width:46px;height:46px;border-radius:16px;
+ background:linear-gradient(135deg,#8070ff,#42d9cf);
+ display:grid;place-items:center;font-size:25px;font-weight:bold
+}
 .brand h1{margin:0;font-size:24px;letter-spacing:3px}
 .muted{color:var(--muted);font-size:12px}
-.search{margin:0 15px 15px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;color:white;width:calc(100% - 30px);outline:none}
-.section{padding:9px 18px;color:var(--muted);font-size:11px;letter-spacing:1.4px;text-transform:uppercase}
+.search{
+ margin:0 15px 15px;padding:12px;background:var(--card);
+ border:1px solid var(--line);border-radius:12px;color:white;
+ width:calc(100% - 30px);outline:none
+}
+.section{
+ padding:9px 18px;color:var(--muted);font-size:11px;
+ letter-spacing:1.4px;text-transform:uppercase
+}
 .list{overflow-y:auto;flex:1;padding:0 9px}
-.conversation{width:100%;display:flex;align-items:center;gap:12px;padding:13px 10px;border:0;border-radius:14px;background:transparent;color:white;text-align:left;margin-bottom:5px}
+.conversation{
+ width:100%;display:flex;align-items:center;gap:12px;
+ padding:13px 10px;border:0;border-radius:14px;
+ background:transparent;color:white;text-align:left;margin-bottom:5px
+}
 .conversation:hover,.conversation.active{background:#252d43}
-.avatar{height:46px;width:46px;flex-shrink:0;border-radius:15px;display:grid;place-items:center;font-size:20px;font-weight:bold;background:#5144a0}
+.avatar{
+ height:46px;width:46px;flex-shrink:0;border-radius:15px;
+ display:grid;place-items:center;font-size:20px;font-weight:bold;
+ background:#5144a0
+}
 .avatar.mint{background:#174f51;color:#70edda}
 .avatar.pink{background:#523651;color:#f0b8ff}
 .details{min-width:0;flex:1}
 .details strong{display:block;font-size:14px;margin-bottom:6px}
-.preview{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview{
+ font-size:12px;color:var(--muted);white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis
+}
 .count{font-size:10px;color:var(--mint);white-space:nowrap}
-.profile{border-top:1px solid var(--line);padding:13px;display:flex;align-items:center;gap:10px}
-.profile input{min-width:0;width:100%;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:white}
+.profile{
+ border-top:1px solid var(--line);padding:13px;
+ display:flex;align-items:center;gap:10px
+}
+.profile input{
+ min-width:0;width:100%;padding:9px;border:1px solid var(--line);
+ border-radius:9px;background:var(--card);color:white
+}
 .main{min-width:0;flex:1;display:flex;flex-direction:column}
-.topbar{height:76px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:12px}
+.topbar{
+ min-height:76px;flex-shrink:0;border-bottom:1px solid var(--line);
+ display:flex;align-items:center;padding:0 20px;gap:12px
+}
 .topbar h2{margin:0 0 5px;font-size:17px}
 .top-actions{margin-left:auto;display:flex;gap:8px}
-.action{height:39px;min-width:39px;padding:0 11px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:#dce4f5}
+.action{
+ height:39px;min-width:39px;padding:0 11px;
+ border:1px solid var(--line);border-radius:12px;
+ background:var(--panel);color:#dce4f5
+}
 .action:hover{border-color:var(--purple)}
 #status{font-size:11px;color:var(--mint);margin-top:4px}
-#messages{flex:1;min-height:0;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:15px}
+#messages{
+ flex:1;min-height:0;overflow-y:auto;padding:22px;
+ display:flex;flex-direction:column;gap:15px
+}
 .welcome{margin:auto;text-align:center;color:var(--muted);line-height:1.8}
 .welcome .star{font-size:45px;color:var(--purple)}
-.message{max-width:85%;align-self:flex-start;display:flex;gap:10px;align-items:flex-start}
+.message{
+ max-width:85%;align-self:flex-start;display:flex;
+ gap:10px;align-items:flex-start
+}
 .message.mine{align-self:flex-end;flex-direction:row-reverse}
-.miniavatar{width:34px;height:34px;flex-shrink:0;border-radius:12px;display:grid;place-items:center;background:#5144a0;font-size:13px;font-weight:bold}
+.miniavatar{
+ width:34px;height:34px;flex-shrink:0;border-radius:12px;
+ display:grid;place-items:center;background:#5144a0;
+ font-size:13px;font-weight:bold
+}
 .bubble-wrap{min-width:0}
 .author{font-size:12px;color:#b7adff;margin:0 0 6px 3px;font-weight:bold}
-.bubble{background:#202a3d;border:1px solid #303b52;padding:12px 14px;border-radius:5px 16px 16px 16px;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.5}
-.mine .bubble{background:#302c58;border-color:#49427d;border-radius:16px 5px 16px 16px}
+.bubble{
+ background:#202a3d;border:1px solid #303b52;padding:12px 14px;
+ border-radius:5px 16px 16px 16px;overflow-wrap:anywhere;
+ white-space:pre-wrap;line-height:1.5
+}
+.mine .bubble{
+ background:#302c58;border-color:#49427d;
+ border-radius:16px 5px 16px 16px
+}
 .time{font-size:10px;color:var(--muted);margin:6px 3px 0}
-.composer-area{padding:12px 18px 15px;border-top:1px solid var(--line);background:#141b29}
-.composer{display:flex;gap:10px;align-items:center;background:#202a3d;border:1px solid #35405a;border-radius:16px;padding:7px}
-.composer input{flex:1;min-width:0;background:transparent;color:white;border:0;outline:none;padding:11px 5px}
-.composer button{height:40px;width:42px;border:0;border-radius:12px;background:var(--purple);color:white;font-size:18px}
-.composer button:disabled{opacity:.4}
+.composer-area{
+ padding:12px 18px 15px;border-top:1px solid var(--line);
+ background:#141b29
+}
+.composer{
+ display:flex;gap:10px;align-items:center;background:#202a3d;
+ border:1px solid #35405a;border-radius:16px;padding:7px
+}
+.composer input{
+ flex:1;min-width:0;background:transparent;color:white;
+ border:0;outline:none;padding:11px 5px
+}
+.composer button{
+ height:40px;min-width:42px;border:0;border-radius:12px;
+ background:var(--purple);color:white;font-size:18px
+}
+.composer button:disabled{opacity:.4;cursor:not-allowed}
+.composer #attachButton{background:transparent;color:#aab5cc}
 .hint{color:#7f8ba4;font-size:10px;padding:9px 4px 0}
 #menuButton{display:none}
+
 @media(max-width:650px){
  .sidebar{width:100%;border:0}
  .main{display:none}
@@ -67,162 +142,389 @@ button{cursor:pointer}
  .brand h1{font-size:21px}
  .search{margin-bottom:9px}
  .conversation{padding:12px}
- .topbar{height:68px;padding:0 10px}
+ .topbar{min-height:68px;padding:0 10px}
  #messages{padding:15px 10px}
  .composer-area{padding:9px}
  .action{min-width:34px;height:35px;padding:0 8px}
 }
 </style>
 </head>
+
 <body>
 <div class="app" id="app">
  <aside class="sidebar">
   <div class="brand">
    <div class="logo">N</div>
-   <div><h1>NEXO</h1><div class="muted">Sua rede de conexões</div></div>
+   <div>
+    <h1>NEXO</h1>
+    <div class="muted">Sua rede de conexões</div>
+   </div>
   </div>
-  <input class="search" id="search" placeholder="⌕  Buscar conversas..." aria-label="Buscar conversas">
+
+  <input class="search" id="search"
+   placeholder="⌕ Buscar conversas..." aria-label="Buscar conversas">
+
   <div class="section">Seu espaço</div>
+
   <div class="list" id="conversationList">
    <button class="conversation active" data-channel="geral">
     <div class="avatar">✦</div>
-    <div class="details"><strong>Comunidade NEXO</strong><div class="preview"># Geral · Converse com todos</div></div>
+    <div class="details">
+     <strong>Comunidade NEXO</strong>
+     <div class="preview"># Geral · Converse com todos</div>
+    </div>
     <span class="count">●</span>
    </button>
+
    <button class="conversation" data-channel="jogos">
     <div class="avatar mint">⌘</div>
-    <div class="details"><strong>Squad Gaming</strong><div class="preview"># Jogos · Bora jogar?</div></div>
+    <div class="details">
+     <strong>Squad Gaming</strong>
+     <div class="preview"># Jogos · Bora jogar?</div>
+    </div>
    </button>
+
    <button class="conversation" data-channel="tecnologia">
     <div class="avatar pink">✧</div>
-    <div class="details"><strong>Laboratório Tech</strong><div class="preview"># Tecnologia · Ideias novas</div></div>
+    <div class="details">
+     <strong>Laboratório Tech</strong>
+     <div class="preview"># Tecnologia · Ideias novas</div>
+    </div>
    </button>
+
    <button class="conversation" data-channel="conversa">
     <div class="avatar" style="background:#654c30">☼</div>
-    <div class="details"><strong>Ponto de Encontro</strong><div class="preview"># Conversas · Fale à vontade</div></div>
+    <div class="details">
+     <strong>Ponto de Encontro</strong>
+     <div class="preview"># Conversas · Fale à vontade</div>
+    </div>
    </button>
   </div>
+
   <div class="profile">
-   <div class="avatar mint" style="width:36px;height:36px;border-radius:12px">☺</div>
+   <div class="avatar mint"
+    style="width:36px;height:36px;border-radius:12px">☺</div>
    <div style="flex:1;min-width:0">
     <div class="muted" style="margin-bottom:5px">Você aparece como</div>
-    <input id="username" maxlength="24" value="Membro" aria-label="Nome de exibição">
+    <input id="username" maxlength="24" value="Membro"
+     aria-label="Nome de exibição">
    </div>
   </div>
  </aside>
+
  <main class="main">
   <header class="topbar">
    <button class="action" id="menuButton" aria-label="Voltar">‹</button>
-   <div><h2 id="channelTitle">Comunidade NEXO</h2><div class="muted" id="channelSubtitle">Um espaço para todo mundo</div><div id="status">Conectando...</div></div>
+   <div>
+    <h2 id="channelTitle">Comunidade NEXO</h2>
+    <div class="muted" id="channelSubtitle">Um espaço para todo mundo</div>
+    <div id="status">Conectando...</div>
+   </div>
    <div class="top-actions">
     <button class="action" id="membersButton" title="Participantes">♙</button>
     <button class="action" id="callButton" title="Voz">☎</button>
     <button class="action" id="videoButton" title="Vídeo">▣</button>
    </div>
   </header>
+
   <section id="messages" aria-live="polite">
-   <div class="welcome" id="welcome"><div class="star">✦</div><strong>Um lugar para se conectar.</strong><div>Escolha uma conversa e mande a primeira mensagem.</div></div>
+   <div class="welcome" id="welcome">
+    <div class="star">✦</div>
+    <strong>Um lugar para se conectar.</strong>
+    <div>Escolha uma conversa e mande a primeira mensagem.</div>
+   </div>
   </section>
+
   <div class="composer-area">
    <form class="composer" id="chatForm">
-    <button type="button" id="attachButton" title="Anexos" style="background:transparent;color:#aab5cc">＋</button>
-    <input id="messageInput" maxlength="2000" placeholder="Escreva algo para sua comunidade..." autocomplete="off" required>
-    <button type="submit" id="sendButton" disabled aria-label="Enviar mensagem">➤</button>
+    <button type="button" id="attachButton" title="Anexos">＋</button>
+    <input id="messageInput" maxlength="2000"
+     placeholder="Escreva algo para sua comunidade..."
+     autocomplete="off" required>
+    <button type="submit" id="sendButton" disabled
+     aria-label="Enviar mensagem">➤</button>
    </form>
    <div class="hint">Seja respeitoso. Sua comunidade começa com uma boa conversa.</div>
   </div>
  </main>
 </div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const app=document.getElementById("app");
-const statusEl=document.getElementById("status");
-const messagesEl=document.getElementById("messages");
-const input=document.getElementById("messageInput");
-const usernameInput=document.getElementById("username");
-const sendButton=document.getElementById("sendButton");
-const titleEl=document.getElementById("channelTitle");
-const subtitleEl=document.getElementById("channelSubtitle");
-const form=document.getElementById("chatForm");
-const names={
- geral:["Comunidade NEXO","Um espaço para todo mundo"],
- jogos:["Squad Gaming","Encontre sua próxima partida"],
- tecnologia:["Laboratório Tech","Ideias, projetos e descobertas"],
- conversa:["Ponto de Encontro","Conversas sem complicação"]
+const app = document.getElementById("app");
+const statusEl = document.getElementById("status");
+const messagesEl = document.getElementById("messages");
+const input = document.getElementById("messageInput");
+const usernameInput = document.getElementById("username");
+const sendButton = document.getElementById("sendButton");
+const titleEl = document.getElementById("channelTitle");
+const subtitleEl = document.getElementById("channelSubtitle");
+const form = document.getElementById("chatForm");
+
+const names = {
+ geral: ["Comunidade NEXO", "Um espaço para todo mundo"],
+ jogos: ["Squad Gaming", "Encontre sua próxima partida"],
+ tecnologia: ["Laboratório Tech", "Ideias, projetos e descobertas"],
+ conversa: ["Ponto de Encontro", "Conversas sem complicação"]
 };
-let clientId=sessionStorage.getItem("nexoClientId");
-if(!clientId){clientId=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();sessionStorage.setItem("nexoClientId",clientId)}
-usernameInput.value=localStorage.getItem("nexoUsername")||"Membro";
-usernameInput.addEventListener("change",()=>{
- usernameInput.value=usernameInput.value.trim().slice(0,24)||"Membro";
- localStorage.setItem("nexoUsername",usernameInput.value);
+
+let clientId = sessionStorage.getItem("nexoClientId");
+
+if (!clientId) {
+ clientId = (window.crypto && crypto.randomUUID)
+  ? crypto.randomUUID()
+  : String(Date.now()) + Math.random().toString(36).slice(2);
+ sessionStorage.setItem("nexoClientId", clientId);
+}
+
+usernameInput.value = localStorage.getItem("nexoUsername") || "Membro";
+
+usernameInput.addEventListener("change", () => {
+ usernameInput.value = usernameInput.value.trim().slice(0, 24) || "Membro";
+ localStorage.setItem("nexoUsername", usernameInput.value);
 });
-let currentChannel="geral",joinedChannel=null,socket=null;
-function updateStatus(connected){
- statusEl.textContent=connected?"● Conectado":"● Reconectando...";
- statusEl.style.color=connected?"#55ddc7":"#ffcc66";
- sendButton.disabled=!connected||joinedChannel!==currentChannel;
+
+let currentChannel = "geral";
+let joinedChannel = null;
+let socket = null;
+let pendingMessage = null;
+
+function updateStatus(connected) {
+ if (!connected) {
+  statusEl.textContent = "● Reconectando...";
+  statusEl.style.color = "#ffcc66";
+ } else if (joinedChannel === currentChannel) {
+  statusEl.textContent = "● Conectado";
+  statusEl.style.color = "#55ddc7";
+ } else {
+  statusEl.textContent = "● Entrando no canal...";
+  statusEl.style.color = "#ffcc66";
+ }
+
+ sendButton.disabled = !connected || !input.value.trim();
 }
-function clearMessages(){
+
+input.addEventListener("input", () => {
+ sendButton.disabled = !socket || !socket.connected || !input.value.trim();
+});
+
+function clearMessages() {
  messagesEl.replaceChildren();
- const welcome=document.createElement("div");
- welcome.className="welcome";welcome.id="welcome";
- const star=document.createElement("div");star.className="star";star.textContent="✦";
- const strong=document.createElement("strong");strong.textContent="Bem-vindo a "+names[currentChannel][0];
- const desc=document.createElement("div");desc.textContent="Envie uma mensagem para começar.";
- welcome.append(star,strong,desc);messagesEl.appendChild(welcome);
+
+ const welcome = document.createElement("div");
+ welcome.className = "welcome";
+ welcome.id = "welcome";
+
+ const star = document.createElement("div");
+ star.className = "star";
+ star.textContent = "✦";
+
+ const strong = document.createElement("strong");
+ strong.textContent = "Bem-vindo a " + names[currentChannel][0];
+
+ const desc = document.createElement("div");
+ desc.textContent = "Envie uma mensagem para começar.";
+
+ welcome.append(star, strong, desc);
+ messagesEl.appendChild(welcome);
 }
-function selectChannel(id){
- if(!names[id])return;
- currentChannel=id;joinedChannel=null;
- document.querySelectorAll(".conversation").forEach(b=>b.classList.toggle("active",b.dataset.channel===id));
- titleEl.textContent=names[id][0];subtitleEl.textContent=names[id][1];
- input.placeholder="Escreva em "+names[id][0]+"...";
- clearMessages();updateStatus(Boolean(socket&&socket.connected));
- if(socket&&socket.connected)socket.emit("join channel",id);
- if(window.innerWidth<=650)app.classList.add("chat-open");
+
+function selectChannel(id) {
+ if (!names[id]) return;
+
+ currentChannel = id;
+ joinedChannel = null;
+
+ document.querySelectorAll(".conversation").forEach(button => {
+  button.classList.toggle("active", button.dataset.channel === id);
+ });
+
+ titleEl.textContent = names[id][0];
+ subtitleEl.textContent = names[id][1];
+ input.placeholder = "Escreva em " + names[id][0] + "...";
+
+ clearMessages();
+ updateStatus(Boolean(socket && socket.connected));
+
+ if (socket && socket.connected) {
+  socket.emit("join channel", id);
+ }
+
+ if (window.innerWidth <= 650) {
+  app.classList.add("chat-open");
+ }
 }
-document.querySelectorAll(".conversation").forEach(b=>b.addEventListener("click",()=>selectChannel(b.dataset.channel)));
-document.getElementById("menuButton").addEventListener("click",()=>app.classList.remove("chat-open"));
-document.getElementById("search").addEventListener("input",e=>{
- const q=e.target.value.toLowerCase();
- document.querySelectorAll(".conversation").forEach(b=>{
- b.style.display=b.textContent.toLowerCase().includes(q)?"flex":"none";
+
+document.querySelectorAll(".conversation").forEach(button => {
+ button.addEventListener("click", () => selectChannel(button.dataset.channel));
+});
+
+document.getElementById("menuButton").addEventListener("click", () => {
+ app.classList.remove("chat-open");
+});
+
+document.getElementById("search").addEventListener("input", event => {
+ const query = event.target.value.toLowerCase();
+
+ document.querySelectorAll(".conversation").forEach(button => {
+  button.style.display = button.textContent.toLowerCase().includes(query)
+   ? "flex" : "none";
  });
 });
-function addMessage(data){
- if(!data||typeof data.message!=="string"||data.channel!==currentChannel)return;
+
+function addMessage(data) {
+ if (!data || typeof data.message !== "string") return;
+ if (data.channel !== currentChannel) return;
+
  document.getElementById("welcome")?.remove();
- const mine=data.clientId===clientId;
- const box=document.createElement("div");box.className="message"+(mine?" mine":"");
- const avatar=document.createElement("div");avatar.className="miniavatar";avatar.textContent=(data.username||"M").charAt(0).toUpperCase();
- const wrap=document.createElement("div");wrap.className="bubble-wrap";
- const author=document.createElement("div");author.className="author";author.textContent=mine?"Você":(data.username||"Membro");
- const bubble=document.createElement("div");bubble.className="bubble";bubble.textContent=data.message;
- const time=document.createElement("div");time.className="time";
- const date=new Date(data.time);time.textContent=Number.isNaN(date.getTime())?"":date.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
- wrap.append(author,bubble,time);box.append(avatar,wrap);messagesEl.appendChild(box);messagesEl.scrollTop=messagesEl.scrollHeight;
+
+ const mine = data.clientId === clientId;
+ const box = document.createElement("div");
+ box.className = "message" + (mine ? " mine" : "");
+
+ const avatar = document.createElement("div");
+ avatar.className = "miniavatar";
+ avatar.textContent = (data.username || "M").charAt(0).toUpperCase();
+
+ const wrap = document.createElement("div");
+ wrap.className = "bubble-wrap";
+
+ const author = document.createElement("div");
+ author.className = "author";
+ author.textContent = mine ? "Você" : (data.username || "Membro");
+
+ const bubble = document.createElement("div");
+ bubble.className = "bubble";
+ bubble.textContent = data.message;
+
+ const time = document.createElement("div");
+ time.className = "time";
+
+ const date = new Date(data.time);
+ time.textContent = Number.isNaN(date.getTime())
+  ? ""
+  : date.toLocaleTimeString("pt-BR", {
+     hour: "2-digit",
+     minute: "2-digit"
+    });
+
+ wrap.append(author, bubble, time);
+ box.append(avatar, wrap);
+ messagesEl.appendChild(box);
+ messagesEl.scrollTop = messagesEl.scrollHeight;
 }
-if(typeof io!=="function"){
- statusEl.textContent="Erro ao carregar o chat";statusEl.style.color="#ff7777";
-}else{
- socket=io();
- socket.on("connect",()=>{updateStatus(true);socket.emit("join channel",currentChannel)});
- socket.on("disconnect",()=>{joinedChannel=null;updateStatus(false)});
- socket.on("connect_error",e=>{console.error(e.message);updateStatus(false)});
- socket.on("channel joined",channel=>{if(channel.id!==currentChannel)return;joinedChannel=channel.id;updateStatus(true)});
- socket.on("chat message",addMessage);
+
+function sendMessage(message, channel) {
+ if (!socket || !socket.connected) {
+  statusEl.textContent = "Sem conexão com o servidor";
+  statusEl.style.color = "#ff7777";
+  return false;
+ }
+
+ if (joinedChannel !== channel) {
+  pendingMessage = { message, channel };
+  statusEl.textContent = "Conectando ao canal...";
+  socket.emit("join channel", channel);
+  return false;
+ }
+
+ socket.emit("chat message", {
+  message: message,
+  username: usernameInput.value.trim() || "Membro",
+  clientId: clientId
+ });
+
+ return true;
 }
-form.addEventListener("submit",e=>{
- e.preventDefault();const message=input.value.trim();
- if(!message||!socket||!socket.connected||joinedChannel!==currentChannel)return;
- socket.emit("chat message",{message,username:usernameInput.value.trim()||"Membro",clientId});
- input.value="";input.focus();
+
+if (typeof io !== "function") {
+ statusEl.textContent = "Erro ao carregar o chat";
+ statusEl.style.color = "#ff7777";
+} else {
+ socket = io();
+
+ socket.on("connect", () => {
+  joinedChannel = null;
+  updateStatus(true);
+  socket.emit("join channel", currentChannel);
+ });
+
+ socket.on("disconnect", () => {
+  joinedChannel = null;
+  updateStatus(false);
+ });
+
+ socket.on("connect_error", error => {
+  console.error("Erro de conexão:", error.message);
+  statusEl.textContent = "Erro de conexão";
+  statusEl.style.color = "#ff7777";
+  updateStatus(false);
+ });
+
+ socket.on("channel joined", channel => {
+  if (!channel || !channel.id) return;
+  if (channel.id !== currentChannel) return;
+
+  joinedChannel = channel.id;
+  updateStatus(true);
+
+  if (pendingMessage && pendingMessage.channel === joinedChannel) {
+   const queued = pendingMessage;
+   pendingMessage = null;
+
+   socket.emit("chat message", {
+    message: queued.message,
+    username: usernameInput.value.trim() || "Membro",
+    clientId: clientId
+   });
+
+   input.value = "";
+   sendButton.disabled = true;
+   input.focus();
+  }
+ });
+
+ socket.on("chat message", addMessage);
+}
+
+form.addEventListener("submit", event => {
+ event.preventDefault();
+
+ const message = input.value.trim();
+ if (!message) return;
+
+ if (!socket || !socket.connected) {
+  statusEl.textContent = "Sem conexão com o servidor";
+  statusEl.style.color = "#ff7777";
+  return;
+ }
+
+ const channel = currentChannel;
+ const sent = sendMessage(message, channel);
+
+ if (sent) {
+  input.value = "";
+  sendButton.disabled = true;
+  input.focus();
+ }
 });
-document.getElementById("membersButton").addEventListener("click",()=>alert("A lista de membros estará disponível em uma próxima atualização."));
-document.getElementById("callButton").addEventListener("click",()=>alert("As chamadas de voz serão implementadas em uma próxima etapa."));
-document.getElementById("videoButton").addEventListener("click",()=>alert("As chamadas de vídeo serão implementadas em uma próxima etapa."));
-document.getElementById("attachButton").addEventListener("click",()=>alert("O envio de arquivos será implementado em uma próxima etapa."));
+
+document.getElementById("membersButton").addEventListener("click", () => {
+ alert("A lista de membros será implementada em uma próxima atualização.");
+});
+
+document.getElementById("callButton").addEventListener("click", () => {
+ alert("As chamadas de voz serão implementadas em uma próxima etapa.");
+});
+
+document.getElementById("videoButton").addEventListener("click", () => {
+ alert("As chamadas de vídeo serão implementadas em uma próxima etapa.");
+});
+
+document.getElementById("attachButton").addEventListener("click", () => {
+ alert("O envio de arquivos será implementado em uma próxima etapa.");
+});
+
 selectChannel("geral");
 </script>
 </body>

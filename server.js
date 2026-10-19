@@ -6,12 +6,7 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
-});
+const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
@@ -21,6 +16,10 @@ const channels = [
   { id: "tecnologia", name: "Laboratório Tech" },
   { id: "conversa", name: "Ponto de Encontro" }
 ];
+
+const messageHistory = Object.fromEntries(
+  channels.map(channel => [channel.id, []])
+);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -38,25 +37,18 @@ app.get("/api/channels", (req, res) => {
   res.json(channels);
 });
 
-io.on("connection", (socket) => {
+io.on("connection", socket => {
   console.log("USUARIO CONECTADO:", socket.id);
 
   let currentChannel = null;
 
-  socket.on("join channel", (channelId) => {
-    console.log("PEDIDO PARA ENTRAR NO CANAL:", channelId);
-
-    const channel = channels.find(
-      (item) => item.id === channelId
-    );
+  socket.on("join channel", channelId => {
+    const channel = channels.find(item => item.id === channelId);
 
     if (!channel) {
-      console.log("ERRO: CANAL NAO EXISTE:", channelId);
-
       socket.emit("channel error", {
         message: "Canal não encontrado."
       });
-
       return;
     }
 
@@ -73,27 +65,20 @@ io.on("connection", (socket) => {
       id: channel.id,
       name: channel.name
     });
+
+    socket.emit("chat history", {
+      channel: currentChannel,
+      messages: messageHistory[currentChannel]
+    });
   });
 
-  socket.on("chat message", (data) => {
-    console.log("EVENTO CHAT MESSAGE RECEBIDO");
-
-    if (!currentChannel) {
-      console.log("MENSAGEM BLOQUEADA: USUARIO SEM CANAL");
-      return;
-    }
-
-    if (!data || typeof data.message !== "string") {
-      console.log("MENSAGEM INVALIDA");
-      return;
-    }
+  socket.on("chat message", data => {
+    if (!currentChannel) return;
+    if (!data || typeof data.message !== "string") return;
 
     const message = data.message.trim();
 
-    if (!message || message.length > 2000) {
-      console.log("MENSAGEM VAZIA OU MUITO LONGA");
-      return;
-    }
+    if (!message || message.length > 2000) return;
 
     const username =
       typeof data.username === "string"
@@ -112,24 +97,23 @@ io.on("connection", (socket) => {
       time: new Date().toISOString()
     };
 
+    messageHistory[currentChannel].push(payload);
+
+    if (messageHistory[currentChannel].length > 100) {
+      messageHistory[currentChannel].shift();
+    }
+
     io.to(currentChannel).emit("chat message", payload);
 
-    console.log(
-      "MENSAGEM ENVIADA PARA O CANAL:",
-      currentChannel
-    );
+    console.log("MENSAGEM ENVIADA:", currentChannel);
   });
 
-  socket.on("disconnect", (reason) => {
-    console.log(
-      "USUARIO DESCONECTADO:",
-      socket.id,
-      reason
-    );
+  socket.on("disconnect", reason => {
+    console.log("USUARIO DESCONECTADO:", socket.id, reason);
   });
 });
 
-server.on("error", (error) => {
+server.on("error", error => {
   console.error("ERRO NO SERVIDOR:", error);
 });
 

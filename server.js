@@ -13,8 +13,13 @@ const server = http.createServer(app);
 const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
+console.log("Diagnóstico de variáveis:", {
+  DATABASE_URL_CONFIGURADA: Boolean(process.env.DATABASE_URL),
+  SESSION_SECRET_CONFIGURADA: Boolean(process.env.SESSION_SECRET)
+});
+
 if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
-  throw new Error("Configure DATABASE_URL e SESSION_SECRET no Render.");
+  throw new Error("Falta uma variável de ambiente obrigatória. Confira o diagnóstico acima.");
 }
 
 app.set("trust proxy", 1);
@@ -22,7 +27,14 @@ app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL.includes("localhost")
+    ? false
+    : { rejectUnauthorized: false }
+});
+
+pool.on("error", (err) => {
+  console.error("Erro inesperado no PostgreSQL:", err.message);
 });
 
 const sessionMiddleware = session({
@@ -68,9 +80,9 @@ function requireAuth(req, res, next) {
   next();
 }
 
-// Impede requisições de alteração vindas de outros sites.
 function sameOrigin(req, res, next) {
   const origin = req.get("origin");
+
   if (origin) {
     try {
       if (new URL(origin).host !== req.get("host")) {
@@ -82,6 +94,7 @@ function sameOrigin(req, res, next) {
       return res.status(403).json({ error: "Origem inválida." });
     }
   }
+
   next();
 }
 
@@ -139,11 +152,7 @@ app.post("/api/register", sameOrigin, async (req, res) => {
       [username, email, passwordHash]
     );
 
-    const user = {
-      id: result.rows[0].id,
-      username: result.rows[0].username,
-      email: result.rows[0].email
-    };
+    const user = result.rows[0];
 
     await regenerateSession(req);
     req.session.user = user;
@@ -156,6 +165,7 @@ app.post("/api/register", sameOrigin, async (req, res) => {
         error: "Esse nome de usuário ou e-mail já está cadastrado."
       });
     }
+
     console.error("Erro no cadastro:", err.message);
     res.status(500).json({ error: "Não foi possível criar a conta." });
   }
@@ -203,10 +213,12 @@ app.post("/api/login", sameOrigin, async (req, res) => {
   }
 });
 
-app.post("/api/logout", sameOrigin, async (req, res) => {
+app.post("/api/logout", sameOrigin, (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      return res.status(500).json({ error: "Não foi possível sair." });
+      return res.status(500).json({
+        error: "Não foi possível sair."
+      });
     }
 
     res.clearCookie("connect.sid", {
@@ -239,24 +251,33 @@ app.get("/api/messages/:channel", requireAuth, async (req, res) => {
     res.json(result.rows.reverse());
   } catch (err) {
     console.error("Erro ao buscar mensagens:", err.message);
-    res.status(500).json({ error: "Não foi possível carregar as mensagens." });
+    res.status(500).json({
+      error: "Não foi possível carregar as mensagens."
+    });
   }
 });
 
-// Somente usuários autenticados podem conectar o chat.
 io.use((socket, next) => {
   const user = socket.request.session?.user;
-  if (!user) return next(new Error("Faça login para usar o chat."));
+
+  if (!user) {
+    return next(new Error("Faça login para usar o chat."));
+  }
+
   socket.user = user;
   next();
 });
 
 io.on("connection", (socket) => {
   socket.on("join channel", async (channel) => {
-    if (typeof channel !== "string" || !channels.includes(channel)) return;
+    if (typeof channel !== "string" || !channels.includes(channel)) {
+      return;
+    }
 
     for (const room of socket.rooms) {
-      if (channels.includes(room)) socket.leave(room);
+      if (channels.includes(room)) {
+        socket.leave(room);
+      }
     }
 
     socket.join(channel);
@@ -271,6 +292,7 @@ io.on("connection", (socket) => {
          LIMIT 100`,
         [channel]
       );
+
       socket.emit("chat history", result.rows.reverse());
     } catch (err) {
       console.error("Erro no histórico:", err.message);
@@ -296,7 +318,10 @@ io.on("connection", (socket) => {
       }
 
       if (!message || message.length > 2000) {
-        return socket.emit("chat error", "A mensagem deve ter de 1 a 2000 caracteres.");
+        return socket.emit(
+          "chat error",
+          "A mensagem deve ter de 1 a 2000 caracteres."
+        );
       }
 
       const result = await pool.query(
@@ -341,6 +366,6 @@ async function start() {
 }
 
 start().catch((err) => {
-  console.error("Falha ao iniciar NEXO:", err);
+  console.error("Falha ao iniciar NEXO:", err.message);
   process.exit(1);
 });

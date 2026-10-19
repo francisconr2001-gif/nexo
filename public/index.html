@@ -1,531 +1,757 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#101522">
-<title>NEXO — Conexões</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10111c">
+  <title>NEXO — Sua comunidade</title>
+  <style>
+    :root {
+      --bg: #10111c;
+      --panel: #181a29;
+      --panel2: #202236;
+      --border: #303249;
+      --text: #f5f5ff;
+      --muted: #999bb5;
+      --purple: #8b5cf6;
+      --mint: #69f0c0;
+      --danger: #ff6b81;
+    }
 
-<style>
-*{box-sizing:border-box}
-:root{
- --bg:#101522;--panel:#171f30;--card:#202a3d;
- --purple:#8070ff;--mint:#55ddc7;--muted:#9caac3;--line:#2b354a
-}
-body{
- margin:0;background:var(--bg);color:#f5f7ff;
- font-family:Arial,sans-serif;height:100dvh;overflow:hidden
-}
-button,input{font:inherit}
-button{cursor:pointer}
-.app{display:flex;height:100%;max-width:1200px;margin:auto}
-.sidebar{
- width:320px;flex-shrink:0;background:#141b29;
- border-right:1px solid var(--line);display:flex;flex-direction:column
-}
-.brand{padding:20px;display:flex;align-items:center;gap:12px}
-.logo{
- width:46px;height:46px;border-radius:16px;
- background:linear-gradient(135deg,#8070ff,#42d9cf);
- display:grid;place-items:center;font-size:25px;font-weight:bold
-}
-.brand h1{margin:0;font-size:24px;letter-spacing:3px}
-.muted{color:var(--muted);font-size:12px}
-.search{
- margin:0 15px 15px;padding:12px;background:var(--card);
- border:1px solid var(--line);border-radius:12px;color:white;
- width:calc(100% - 30px);outline:none
-}
-.section{
- padding:9px 18px;color:var(--muted);font-size:11px;
- letter-spacing:1.4px;text-transform:uppercase
-}
-.list{overflow-y:auto;flex:1;padding:0 9px}
-.conversation{
- width:100%;display:flex;align-items:center;gap:12px;
- padding:13px 10px;border:0;border-radius:14px;
- background:transparent;color:white;text-align:left;margin-bottom:5px
-}
-.conversation:hover,.conversation.active{background:#252d43}
-.avatar{
- height:46px;width:46px;flex-shrink:0;border-radius:15px;
- display:grid;place-items:center;font-size:20px;font-weight:bold;
- background:#5144a0
-}
-.avatar.mint{background:#174f51;color:#70edda}
-.avatar.pink{background:#523651;color:#f0b8ff}
-.details{min-width:0;flex:1}
-.details strong{display:block;font-size:14px;margin-bottom:6px}
-.preview{
- font-size:12px;color:var(--muted);white-space:nowrap;
- overflow:hidden;text-overflow:ellipsis
-}
-.count{font-size:10px;color:var(--mint);white-space:nowrap}
-.profile{
- border-top:1px solid var(--line);padding:13px;
- display:flex;align-items:center;gap:10px
-}
-.profile input{
- min-width:0;width:100%;padding:9px;border:1px solid var(--line);
- border-radius:9px;background:var(--card);color:white
-}
-.main{min-width:0;flex:1;display:flex;flex-direction:column}
-.topbar{
- min-height:76px;flex-shrink:0;border-bottom:1px solid var(--line);
- display:flex;align-items:center;padding:0 20px;gap:12px
-}
-.topbar h2{margin:0 0 5px;font-size:17px}
-.top-actions{margin-left:auto;display:flex;gap:8px}
-.action{
- height:39px;min-width:39px;padding:0 11px;
- border:1px solid var(--line);border-radius:12px;
- background:var(--panel);color:#dce4f5
-}
-.action:hover{border-color:var(--purple)}
-#status{font-size:11px;color:var(--mint);margin-top:4px}
-#messages{
- flex:1;min-height:0;overflow-y:auto;padding:22px;
- display:flex;flex-direction:column;gap:15px
-}
-.welcome{margin:auto;text-align:center;color:var(--muted);line-height:1.8}
-.welcome .star{font-size:45px;color:var(--purple)}
-.message{
- max-width:85%;align-self:flex-start;display:flex;
- gap:10px;align-items:flex-start
-}
-.message.mine{align-self:flex-end;flex-direction:row-reverse}
-.miniavatar{
- width:34px;height:34px;flex-shrink:0;border-radius:12px;
- display:grid;place-items:center;background:#5144a0;
- font-size:13px;font-weight:bold
-}
-.bubble-wrap{min-width:0}
-.author{font-size:12px;color:#b7adff;margin:0 0 6px 3px;font-weight:bold}
-.bubble{
- background:#202a3d;border:1px solid #303b52;padding:12px 14px;
- border-radius:5px 16px 16px 16px;overflow-wrap:anywhere;
- white-space:pre-wrap;line-height:1.5
-}
-.mine .bubble{
- background:#302c58;border-color:#49427d;
- border-radius:16px 5px 16px 16px
-}
-.time{font-size:10px;color:var(--muted);margin:6px 3px 0}
-.composer-area{
- padding:12px 18px 15px;border-top:1px solid var(--line);
- background:#141b29
-}
-.composer{
- display:flex;gap:10px;align-items:center;background:#202a3d;
- border:1px solid #35405a;border-radius:16px;padding:7px
-}
-.composer input{
- flex:1;min-width:0;background:transparent;color:white;
- border:0;outline:none;padding:11px 5px
-}
-.composer button{
- height:40px;min-width:42px;border:0;border-radius:12px;
- background:var(--purple);color:white;font-size:18px
-}
-.composer button:disabled{opacity:.4;cursor:not-allowed}
-.composer #attachButton{background:transparent;color:#aab5cc}
-.hint{color:#7f8ba4;font-size:10px;padding:9px 4px 0}
-#menuButton{display:none}
+    * { box-sizing: border-box; }
 
-@media(max-width:650px){
- .sidebar{width:100%;border:0}
- .main{display:none}
- .app.chat-open .sidebar{display:none}
- .app.chat-open .main{display:flex;width:100%}
- #menuButton{display:inline-block}
- .brand{padding:14px}
- .brand h1{font-size:21px}
- .search{margin-bottom:9px}
- .conversation{padding:12px}
- .topbar{min-height:68px;padding:0 10px}
- #messages{padding:15px 10px}
- .composer-area{padding:9px}
- .action{min-width:34px;height:35px;padding:0 8px}
-}
-</style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    button, input { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .app {
+      display: flex;
+      height: 100dvh;
+      width: 100%;
+    }
+
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: #151625;
+      border-right: 1px solid var(--border);
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 8px;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #8b5cf6, #4b9cff);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 2px;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .section-label {
+      padding: 0 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .channels {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .channel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #c6c7dc;
+      text-align: left;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .channel:hover { background: var(--panel2); }
+
+    .channel.active {
+      background: #30264e;
+      border-color: #514078;
+      color: white;
+    }
+
+    .channel-icon {
+      color: var(--mint);
+      font-size: 19px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 13px;
+      border-radius: 13px;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 10px #69f0c066;
+    }
+
+    .small { color: var(--muted); font-size: 12px; }
+
+    .main {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+      background: #141523;
+    }
+
+    .channel-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .channel-heading h2 {
+      font-size: 17px;
+      margin: 0;
+    }
+
+    .channel-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .top-actions { display: flex; gap: 8px; }
+
+    .secondary {
+      color: #e7e4ff;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+
+    .secondary:hover { border-color: var(--purple); }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .welcome {
+      margin: auto;
+      text-align: center;
+      max-width: 360px;
+      padding: 24px;
+    }
+
+    .welcome .welcome-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .welcome h2 { margin: 0 0 9px; }
+
+    .welcome p {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      max-width: 850px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .avatar {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6241a8, #327a9a);
+      color: white;
+      font-weight: bold;
+    }
+
+    .message-content { min-width: 0; flex: 1; }
+
+    .message-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 9px;
+      margin: 2px 0 6px;
+    }
+
+    .message-author {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .message-time {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .message-text {
+      color: #e3e3f1;
+      font-size: 14px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .composer-wrap {
+      padding: 14px 22px 18px;
+      border-top: 1px solid var(--border);
+      background: #141523;
+    }
+
+    .composer {
+      max-width: 900px;
+      margin: auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px;
+    }
+
+    .composer:focus-within { border-color: var(--purple); }
+
+    .composer input {
+      min-width: 0;
+      flex: 1;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: white;
+      padding: 10px 8px;
+      font-size: 14px;
+    }
+
+    .composer input::placeholder { color: #888aa4; }
+
+    .send {
+      border: 0;
+      border-radius: 10px;
+      background: var(--purple);
+      color: white;
+      font-weight: bold;
+      padding: 12px 17px;
+    }
+
+    .send:hover { background: #7748e5; }
+
+    .send:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .username-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .username-row label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .username-row input {
+      width: 150px;
+      min-width: 0;
+      background: transparent;
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px 9px;
+      outline: 0;
+    }
+
+    .connection {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .connection.error { color: var(--danger); }
+    .connection.good { color: var(--mint); }
+
+    .mobile-menu { display: none; }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        position: fixed;
+        z-index: 5;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: min(280px, 84vw);
+        transform: translateX(-105%);
+        transition: transform .2s ease;
+        box-shadow: 12px 0 35px #0005;
+      }
+
+      .sidebar.open { transform: translateX(0); }
+
+      .mobile-menu { display: inline-block; }
+
+      .topbar { padding: 12px; min-height: 70px; }
+
+      .top-actions .secondary { padding: 9px; }
+
+      .messages { padding: 17px 13px; }
+
+      .composer-wrap { padding: 10px 10px 13px; }
+
+      .send { padding: 12px; }
+
+      .username-row { padding: 0 3px; }
+
+      .username-row input { width: 130px; }
+
+      .connection { margin-left: auto; }
+
+      .channel-heading p { max-width: 170px; }
+    }
+  </style>
 </head>
-
 <body>
-<div class="app" id="app">
- <aside class="sidebar">
-  <div class="brand">
-   <div class="logo">N</div>
-   <div>
-    <h1>NEXO</h1>
-    <div class="muted">Sua rede de conexões</div>
-   </div>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo">N</div>
+        <div>
+          <h1>NEXO</h1>
+          <p>Conecte-se ao seu mundo</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Seus espaços</div>
+        <div class="channels">
+          <button class="channel active" data-channel="geral">
+            <span class="channel-icon">#</span>
+            <span>Comunidade NEXO</span>
+          </button>
+          <button class="channel" data-channel="jogos">
+            <span class="channel-icon">◇</span>
+            <span>Squad Gaming</span>
+          </button>
+          <button class="channel" data-channel="tecnologia">
+            <span class="channel-icon">⌘</span>
+            <span>Laboratório Tech</span>
+          </button>
+          <button class="channel" data-channel="conversa">
+            <span class="channel-icon">☰</span>
+            <span>Ponto de Encontro</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="status-line">
+          <span class="dot" id="statusDot"></span>
+          <span id="serverStatus">Conectando...</span>
+        </div>
+        <p class="small" style="margin-bottom:0">
+          NEXO • Chat em tempo real
+        </p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="channel-heading">
+          <button class="secondary mobile-menu" id="menuButton" aria-label="Abrir menu">☰</button>
+          <div>
+            <h2 id="channelTitle"># Comunidade NEXO</h2>
+            <p id="channelSubtitle">Converse com a comunidade</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="secondary" id="voiceButton">🎙 Voz</button>
+          <button class="secondary" id="videoButton">▣ Vídeo</button>
+        </div>
+      </header>
+
+      <section class="messages" id="messages" aria-live="polite">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon">✦</div>
+          <h2>Bem-vindo ao NEXO</h2>
+          <p>Entre na conversa, compartilhe ideias e conheça sua comunidade.</p>
+        </div>
+      </section>
+
+      <footer class="composer-wrap">
+        <form class="composer" id="messageForm">
+          <input
+            id="messageInput"
+            type="text"
+            maxlength="2000"
+            autocomplete="off"
+            placeholder="Escreva uma mensagem..."
+            aria-label="Mensagem"
+          >
+          <button class="send" id="sendButton" type="submit">Enviar ➤</button>
+        </form>
+
+        <div class="username-row">
+          <label for="usernameInput">Seu nome:</label>
+          <input id="usernameInput" maxlength="24" placeholder="Membro">
+          <span class="connection" id="connectionStatus">Conectando ao chat...</span>
+        </div>
+      </footer>
+    </main>
   </div>
 
-  <input class="search" id="search"
-   placeholder="⌕ Buscar conversas..." aria-label="Buscar conversas">
-
-  <div class="section">Seu espaço</div>
-
-  <div class="list" id="conversationList">
-   <button class="conversation active" data-channel="geral">
-    <div class="avatar">✦</div>
-    <div class="details">
-     <strong>Comunidade NEXO</strong>
-     <div class="preview"># Geral · Converse com todos</div>
-    </div>
-    <span class="count">●</span>
-   </button>
-
-   <button class="conversation" data-channel="jogos">
-    <div class="avatar mint">⌘</div>
-    <div class="details">
-     <strong>Squad Gaming</strong>
-     <div class="preview"># Jogos · Bora jogar?</div>
-    </div>
-   </button>
-
-   <button class="conversation" data-channel="tecnologia">
-    <div class="avatar pink">✧</div>
-    <div class="details">
-     <strong>Laboratório Tech</strong>
-     <div class="preview"># Tecnologia · Ideias novas</div>
-    </div>
-   </button>
-
-   <button class="conversation" data-channel="conversa">
-    <div class="avatar" style="background:#654c30">☼</div>
-    <div class="details">
-     <strong>Ponto de Encontro</strong>
-     <div class="preview"># Conversas · Fale à vontade</div>
-    </div>
-   </button>
-  </div>
-
-  <div class="profile">
-   <div class="avatar mint"
-    style="width:36px;height:36px;border-radius:12px">☺</div>
-   <div style="flex:1;min-width:0">
-    <div class="muted" style="margin-bottom:5px">Você aparece como</div>
-    <input id="username" maxlength="24" value="Membro"
-     aria-label="Nome de exibição">
-   </div>
-  </div>
- </aside>
-
- <main class="main">
-  <header class="topbar">
-   <button class="action" id="menuButton" aria-label="Voltar">‹</button>
-   <div>
-    <h2 id="channelTitle">Comunidade NEXO</h2>
-    <div class="muted" id="channelSubtitle">Um espaço para todo mundo</div>
-    <div id="status">Conectando...</div>
-   </div>
-   <div class="top-actions">
-    <button class="action" id="membersButton" title="Participantes">♙</button>
-    <button class="action" id="callButton" title="Voz">☎</button>
-    <button class="action" id="videoButton" title="Vídeo">▣</button>
-   </div>
-  </header>
-
-  <section id="messages" aria-live="polite">
-   <div class="welcome" id="welcome">
-    <div class="star">✦</div>
-    <strong>Um lugar para se conectar.</strong>
-    <div>Escolha uma conversa e mande a primeira mensagem.</div>
-   </div>
-  </section>
-
-  <div class="composer-area">
-   <form class="composer" id="chatForm">
-    <button type="button" id="attachButton" title="Anexos">＋</button>
-    <input id="messageInput" maxlength="2000"
-     placeholder="Escreva algo para sua comunidade..."
-     autocomplete="off" required>
-    <button type="submit" id="sendButton" disabled
-     aria-label="Enviar mensagem">➤</button>
-   </form>
-   <div class="hint">Seja respeitoso. Sua comunidade começa com uma boa conversa.</div>
-  </div>
- </main>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const app = document.getElementById("app");
-const statusEl = document.getElementById("status");
-const messagesEl = document.getElementById("messages");
-const input = document.getElementById("messageInput");
-const usernameInput = document.getElementById("username");
-const sendButton = document.getElementById("sendButton");
-const titleEl = document.getElementById("channelTitle");
-const subtitleEl = document.getElementById("channelSubtitle");
-const form = document.getElementById("chatForm");
-
-const names = {
- geral: ["Comunidade NEXO", "Um espaço para todo mundo"],
- jogos: ["Squad Gaming", "Encontre sua próxima partida"],
- tecnologia: ["Laboratório Tech", "Ideias, projetos e descobertas"],
- conversa: ["Ponto de Encontro", "Conversas sem complicação"]
-};
-
-let clientId = sessionStorage.getItem("nexoClientId");
-
-if (!clientId) {
- clientId = (window.crypto && crypto.randomUUID)
-  ? crypto.randomUUID()
-  : String(Date.now()) + Math.random().toString(36).slice(2);
- sessionStorage.setItem("nexoClientId", clientId);
-}
-
-usernameInput.value = localStorage.getItem("nexoUsername") || "Membro";
-
-usernameInput.addEventListener("change", () => {
- usernameInput.value = usernameInput.value.trim().slice(0, 24) || "Membro";
- localStorage.setItem("nexoUsername", usernameInput.value);
-});
-
-let currentChannel = "geral";
-let joinedChannel = null;
-let socket = null;
-let pendingMessage = null;
-
-function updateStatus(connected) {
- if (!connected) {
-  statusEl.textContent = "● Reconectando...";
-  statusEl.style.color = "#ffcc66";
- } else if (joinedChannel === currentChannel) {
-  statusEl.textContent = "● Conectado";
-  statusEl.style.color = "#55ddc7";
- } else {
-  statusEl.textContent = "● Entrando no canal...";
-  statusEl.style.color = "#ffcc66";
- }
-
- sendButton.disabled = !connected || !input.value.trim();
-}
-
-input.addEventListener("input", () => {
- sendButton.disabled = !socket || !socket.connected || !input.value.trim();
-});
-
-function clearMessages() {
- messagesEl.replaceChildren();
-
- const welcome = document.createElement("div");
- welcome.className = "welcome";
- welcome.id = "welcome";
-
- const star = document.createElement("div");
- star.className = "star";
- star.textContent = "✦";
-
- const strong = document.createElement("strong");
- strong.textContent = "Bem-vindo a " + names[currentChannel][0];
-
- const desc = document.createElement("div");
- desc.textContent = "Envie uma mensagem para começar.";
-
- welcome.append(star, strong, desc);
- messagesEl.appendChild(welcome);
-}
-
-function selectChannel(id) {
- if (!names[id]) return;
-
- currentChannel = id;
- joinedChannel = null;
-
- document.querySelectorAll(".conversation").forEach(button => {
-  button.classList.toggle("active", button.dataset.channel === id);
- });
-
- titleEl.textContent = names[id][0];
- subtitleEl.textContent = names[id][1];
- input.placeholder = "Escreva em " + names[id][0] + "...";
-
- clearMessages();
- updateStatus(Boolean(socket && socket.connected));
-
- if (socket && socket.connected) {
-  socket.emit("join channel", id);
- }
-
- if (window.innerWidth <= 650) {
-  app.classList.add("chat-open");
- }
-}
-
-document.querySelectorAll(".conversation").forEach(button => {
- button.addEventListener("click", () => selectChannel(button.dataset.channel));
-});
-
-document.getElementById("menuButton").addEventListener("click", () => {
- app.classList.remove("chat-open");
-});
-
-document.getElementById("search").addEventListener("input", event => {
- const query = event.target.value.toLowerCase();
-
- document.querySelectorAll(".conversation").forEach(button => {
-  button.style.display = button.textContent.toLowerCase().includes(query)
-   ? "flex" : "none";
- });
-});
-
-function addMessage(data) {
- if (!data || typeof data.message !== "string") return;
- if (data.channel !== currentChannel) return;
-
- document.getElementById("welcome")?.remove();
-
- const mine = data.clientId === clientId;
- const box = document.createElement("div");
- box.className = "message" + (mine ? " mine" : "");
-
- const avatar = document.createElement("div");
- avatar.className = "miniavatar";
- avatar.textContent = (data.username || "M").charAt(0).toUpperCase();
-
- const wrap = document.createElement("div");
- wrap.className = "bubble-wrap";
-
- const author = document.createElement("div");
- author.className = "author";
- author.textContent = mine ? "Você" : (data.username || "Membro");
-
- const bubble = document.createElement("div");
- bubble.className = "bubble";
- bubble.textContent = data.message;
-
- const time = document.createElement("div");
- time.className = "time";
-
- const date = new Date(data.time);
- time.textContent = Number.isNaN(date.getTime())
-  ? ""
-  : date.toLocaleTimeString("pt-BR", {
-     hour: "2-digit",
-     minute: "2-digit"
-    });
-
- wrap.append(author, bubble, time);
- box.append(avatar, wrap);
- messagesEl.appendChild(box);
- messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-function sendMessage(message, channel) {
- if (!socket || !socket.connected) {
-  statusEl.textContent = "Sem conexão com o servidor";
-  statusEl.style.color = "#ff7777";
-  return false;
- }
-
- if (joinedChannel !== channel) {
-  pendingMessage = { message, channel };
-  statusEl.textContent = "Conectando ao canal...";
-  socket.emit("join channel", channel);
-  return false;
- }
-
- socket.emit("chat message", {
-  message: message,
-  username: usernameInput.value.trim() || "Membro",
-  clientId: clientId
- });
-
- return true;
-}
-
-if (typeof io !== "function") {
- statusEl.textContent = "Erro ao carregar o chat";
- statusEl.style.color = "#ff7777";
-} else {
- socket = io();
-
- socket.on("connect", () => {
-  joinedChannel = null;
-  updateStatus(true);
-  socket.emit("join channel", currentChannel);
- });
-
- socket.on("disconnect", () => {
-  joinedChannel = null;
-  updateStatus(false);
- });
-
- socket.on("connect_error", error => {
-  console.error("Erro de conexão:", error.message);
-  statusEl.textContent = "Erro de conexão";
-  statusEl.style.color = "#ff7777";
-  updateStatus(false);
- });
-
- socket.on("channel joined", channel => {
-  if (!channel || !channel.id) return;
-  if (channel.id !== currentChannel) return;
-
-  joinedChannel = channel.id;
-  updateStatus(true);
-
-  if (pendingMessage && pendingMessage.channel === joinedChannel) {
-   const queued = pendingMessage;
-   pendingMessage = null;
-
-   socket.emit("chat message", {
-    message: queued.message,
-    username: usernameInput.value.trim() || "Membro",
-    clientId: clientId
-   });
-
-   input.value = "";
-   sendButton.disabled = true;
-   input.focus();
-  }
- });
-
- socket.on("chat message", addMessage);
-}
-
-form.addEventListener("submit", event => {
- event.preventDefault();
-
- const message = input.value.trim();
- if (!message) return;
-
- if (!socket || !socket.connected) {
-  statusEl.textContent = "Sem conexão com o servidor";
-  statusEl.style.color = "#ff7777";
-  return;
- }
-
- const channel = currentChannel;
- const sent = sendMessage(message, channel);
-
- if (sent) {
-  input.value = "";
-  sendButton.disabled = true;
-  input.focus();
- }
-});
-
-document.getElementById("membersButton").addEventListener("click", () => {
- alert("A lista de membros será implementada em uma próxima atualização.");
-});
-
-document.getElementById("callButton").addEventListener("click", () => {
- alert("As chamadas de voz serão implementadas em uma próxima etapa.");
-});
-
-document.getElementById("videoButton").addEventListener("click", () => {
- alert("As chamadas de vídeo serão implementadas em uma próxima etapa.");
-});
-
-document.getElementById("attachButton").addEventListener("click", () => {
- alert("O envio de arquivos será implementado em uma próxima etapa.");
-});
-
-selectChannel("geral");
-</script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (() => {
+      const socket = io();
+
+      const messagesEl = document.getElementById("messages");
+      const messageInput = document.getElementById("messageInput");
+      const messageForm = document.getElementById("messageForm");
+      const sendButton = document.getElementById("sendButton");
+      const usernameInput = document.getElementById("usernameInput");
+      const channelTitle = document.getElementById("channelTitle");
+      const channelSubtitle = document.getElementById("channelSubtitle");
+      const connectionStatus = document.getElementById("connectionStatus");
+      const serverStatus = document.getElementById("serverStatus");
+      const statusDot = document.getElementById("statusDot");
+      const sidebar = document.getElementById("sidebar");
+
+      const channelNames = {
+        geral: "Comunidade NEXO",
+        jogos: "Squad Gaming",
+        tecnologia: "Laboratório Tech",
+        conversa: "Ponto de Encontro"
+      };
+
+      let currentChannel = "geral";
+      let joinedChannel = null;
+      let pendingMessage = null;
+      let loadingHistory = false;
+
+      let clientId = sessionStorage.getItem("nexoClientId");
+      if (!clientId) {
+        clientId = "nexo-" + Math.random().toString(36).slice(2) +
+          Date.now().toString(36);
+        sessionStorage.setItem("nexoClientId", clientId);
+      }
+
+      usernameInput.value = localStorage.getItem("nexoUsername") || "";
+
+      function setConnection(message, state) {
+        connectionStatus.textContent = message;
+        connectionStatus.className = "connection" + (state ? " " + state : "");
+      }
+
+      function showServerStatus(online) {
+        serverStatus.textContent = online ? "Servidor online" : "Reconectando...";
+        statusDot.style.background = online ? "#69f0c0" : "#ff6b81";
+      }
+
+      function showWelcome() {
+        messagesEl.innerHTML = `
+          <div class="welcome" id="welcome">
+            <div class="welcome-icon">✦</div>
+            <h2>Bem-vindo ao NEXO</h2>
+            <p>Seja o primeiro a conversar neste canal!</p>
+          </div>
+        `;
+      }
+
+      function clearMessages() {
+        messagesEl.innerHTML = "";
+      }
+
+      function formatTime(value) {
+        const date = value ? new Date(value) : new Date();
+        if (Number.isNaN(date.getTime())) return "";
+        return date.toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      }
+
+      function addMessage(data) {
+        if (!data || data.channel !== currentChannel) return;
+
+        const welcome = document.getElementById("welcome");
+        if (welcome) welcome.remove();
+
+        const row = document.createElement("article");
+        row.className = "message";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = (data.username || "M").trim().charAt(0).toUpperCase() || "M";
+
+        const content = document.createElement("div");
+        content.className = "message-content";
+
+        const meta = document.createElement("div");
+        meta.className = "message-meta";
+
+        const author = document.createElement("span");
+        author.className = "message-author";
+        author.textContent = data.username || "Membro";
+
+        const time = document.createElement("span");
+        time.className = "message-time";
+        time.textContent = formatTime(data.time);
+
+        const text = document.createElement("div");
+        text.className = "message-text";
+        text.textContent = data.message || "";
+
+        meta.append(author, time);
+        content.append(meta, text);
+        row.append(avatar, content);
+        messagesEl.appendChild(row);
+
+        while (messagesEl.querySelectorAll(".message").length > 100) {
+          const firstMessage = messagesEl.querySelector(".message");
+          if (firstMessage) firstMessage.remove();
+        }
+
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function selectChannel(channelId) {
+        if (!channelNames[channelId]) return;
+
+        currentChannel = channelId;
+        joinedChannel = null;
+        loadingHistory = true;
+        pendingMessage = null;
+
+        document.querySelectorAll(".channel").forEach(button => {
+          button.classList.toggle("active", button.dataset.channel === channelId);
+        });
+
+        channelTitle.textContent = "# " + channelNames[channelId];
+        channelSubtitle.textContent = "Carregando mensagens...";
+        showWelcome();
+        sidebar.classList.remove("open");
+        setConnection("Entrando no canal...", "");
+
+        if (socket.connected) {
+          socket.emit("join channel", channelId);
+        }
+      }
+
+      socket.on("connect", () => {
+        showServerStatus(true);
+        setConnection("Conectado", "good");
+        socket.emit("join channel", currentChannel);
+      });
+
+      socket.on("disconnect", () => {
+        joinedChannel = null;
+        showServerStatus(false);
+        setConnection("Conexão perdida. Tentando reconectar...", "error");
+      });
+
+      socket.on("connect_error", () => {
+        showServerStatus(false);
+        setConnection("Falha na conexão com o servidor", "error");
+      });
+
+      socket.on("channel joined", data => {
+        if (!data || data.id !== currentChannel) return;
+
+        joinedChannel = data.id;
+        channelSubtitle.textContent = "Converse com a comunidade";
+        setConnection("Conectado ao canal", "good");
+
+        if (pendingMessage) {
+          const message = pendingMessage;
+          pendingMessage = null;
+          socket.emit("chat message", message);
+          messageInput.value = "";
+        }
+      });
+
+      socket.on("channel error", data => {
+        loadingHistory = false;
+        setConnection(data?.message || "Não foi possível entrar no canal", "error");
+      });
+
+      socket.on("chat history", data => {
+        if (!data || data.channel !== currentChannel) return;
+        if (!Array.isArray(data.messages)) return;
+
+        loadingHistory = false;
+        clearMessages();
+
+        if (data.messages.length === 0) {
+          showWelcome();
+        } else {
+          data.messages.forEach(message => addMessage(message));
+        }
+
+        channelSubtitle.textContent = data.messages.length
+          ? data.messages.length + " mensagem(ns) recentes"
+          : "Ainda não há mensagens neste canal";
+
+        if (joinedChannel === currentChannel) {
+          setConnection("Conectado ao canal", "good");
+        }
+      });
+
+      socket.on("chat message", data => {
+        if (!data || data.channel !== currentChannel) return;
+        addMessage(data);
+      });
+
+      messageForm.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        const username = usernameInput.value.trim().slice(0, 24) || "Membro";
+        usernameInput.value = username;
+        localStorage.setItem("nexoUsername", username);
+
+        const payload = {
+          username,
+          message,
+          clientId
+        };
+
+        if (!socket.connected) {
+          setConnection("Sem conexão. Aguarde reconectar.", "error");
+          return;
+        }
+
+        if (!joinedChannel || joinedChannel !== currentChannel || loadingHistory) {
+          pendingMessage = payload;
+          setConnection("Mensagem aguardando entrada no canal...", "");
+          return;
+        }
+
+        socket.emit("chat message", payload);
+        messageInput.value = "";
+        messageInput.focus();
+      });
+
+      document.querySelectorAll(".channel").forEach(button => {
+        button.addEventListener("click", () => {
+          selectChannel(button.dataset.channel);
+        });
+      });
+
+      document.getElementById("menuButton").addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+      });
+
+      document.getElementById("voiceButton").addEventListener("click", () => {
+        alert("Chamadas de voz ainda serão implementadas no NEXO.");
+      });
+
+      document.getElementById("videoButton").addEventListener("click", () => {
+        alert("Chamadas de vídeo ainda serão implementadas no NEXO.");
+      });
+
+      fetch("/api/status")
+        .then(response => {
+          if (!response.ok) throw new Error("Servidor indisponível");
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === "online") showServerStatus(true);
+        })
+        .catch(() => showServerStatus(false));
+
+      selectChannel("geral");
+    })();
+  </script>
 </body>
 </html>

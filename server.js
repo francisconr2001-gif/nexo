@@ -10,6 +10,7 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/api/status", (req, res) => {
@@ -20,26 +21,18 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-app.get("/health", (req, res) => {
-  res.status(200).send("NEXO OK");
-});
-
 io.on("connection", (socket) => {
   console.log("Usuário conectado:", socket.id);
 
-  socket.on("chat:message", (data) => {
-    if (!data || typeof data.text !== "string") return;
+  socket.on("chat message", (data) => {
+    if (typeof data !== "string") return;
 
-    const text = data.text.trim().slice(0, 1000);
-    const name = typeof data.name === "string"
-      ? data.name.trim().slice(0, 30)
-      : "Visitante";
+    const message = data.trim();
+    if (!message || message.length > 2000) return;
 
-    if (!text) return;
-
-    io.emit("chat:message", {
-      name: name || "Visitante",
-      text,
+    io.emit("chat message", {
+      id: socket.id,
+      message,
       time: new Date().toISOString()
     });
   });
@@ -50,5 +43,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log("NEXO iniciado na porta", PORT);
+  console.log(`NEXO online na porta ${PORT}`);
 });

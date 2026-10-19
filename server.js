@@ -1,229 +1,346 @@
 
 const express = require("express");
-const path = require("path");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
 const { Pool } = require("pg");
+const bcrypt = require("bcrypt");
+const session = require("express-session");
+const PgSession = require("connect-pg-simple")(session);
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-
 const PORT = process.env.PORT || 3000;
-const DATABASE_URL = process.env.DATABASE_URL;
 
-if (!DATABASE_URL) {
-  console.error("DATABASE_URL não configurada no Render.");
-  process.exit(1);
+if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
+  throw new Error("Configure DATABASE_URL e SESSION_SECRET no Render.");
 }
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
-const channels = [
-  { id: "geral", name: "Comunidade NEXO" },
-  { id: "jogos", name: "Squad Gaming" },
-  { id: "tecnologia", name: "Laboratório Tech" },
-  { id: "conversa", name: "Ponto de Encontro" }
-];
-
-app.use(express.json());
+app.set("trust proxy", 1);
+app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/api/status", async (req, res) => {
-  try {
-    await pool.query("SELECT 1");
-    res.json({
-      app: "NEXO",
-      status: "online",
-      database: "connected"
-    });
-  } catch (error) {
-    console.error("Erro no banco:", error.message);
-    res.status(503).json({
-      app: "NEXO",
-      status: "degraded",
-      database: "disconnected"
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
+const sessionMiddleware = session({
+  store: new PgSession({
+    pool,
+    tableName: "session",
+    createTableIfMissing: true
+  }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  }
+});
+
+app.use(sessionMiddleware);
+io.engine.use(sessionMiddleware);
+
+const channels = ["geral", "jogos", "tecnologia", "conversa"];
+
+function saveSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.save((err) => err ? reject(err) : resolve());
+  });
+}
+
+function regenerateSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((err) => err ? reject(err) : resolve());
+  });
+}
+
+function requireAuth(req, res, next) {
+  if (!req.session.user) {
+    return res.status(401).json({
+      error: "Faça login para continuar."
     });
   }
+  next();
+}
+
+// Impede requisições de alteração vindas de outros sites.
+function sameOrigin(req, res, next) {
+  const origin = req.get("origin");
+  if (origin) {
+    try {
+      if (new URL(origin).host !== req.get("host")) {
+        return res.status(403).json({
+          error: "Origem da requisição não permitida."
+        });
+      }
+    } catch {
+      return res.status(403).json({ error: "Origem inválida." });
+    }
+  }
+  next();
+}
+
+app.get("/api/status", (req, res) => {
+  res.json({ app: "NEXO", status: "online" });
 });
 
 app.get("/api/channels", (req, res) => {
   res.json(channels);
 });
 
-async function initializeDatabase() {
+app.get("/api/me", (req, res) => {
+  res.json({
+    authenticated: Boolean(req.session.user),
+    user: req.session.user || null
+  });
+});
+
+app.post("/api/register", sameOrigin, async (req, res) => {
+  try {
+    const username = String(req.body.username || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const password = String(req.body.password || "");
+
+    if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
+      return res.status(400).json({
+        error: "O nome deve ter 3 a 24 caracteres: letras, números ou _."
+      });
+    }
+
+    if (
+      email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      return res.status(400).json({
+        error: "Digite um e-mail válido."
+      });
+    }
+
+    if (
+      password.length < 10 ||
+      Buffer.byteLength(password, "utf8") > 72
+    ) {
+      return res.status(400).json({
+        error: "A senha deve ter pelo menos 10 caracteres e no máximo 72 bytes."
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const result = await pool.query(
+      `INSERT INTO users (username, email, password_hash)
+       VALUES ($1, $2, $3)
+       RETURNING id, username, email`,
+      [username, email, passwordHash]
+    );
+
+    const user = {
+      id: result.rows[0].id,
+      username: result.rows[0].username,
+      email: result.rows[0].email
+    };
+
+    await regenerateSession(req);
+    req.session.user = user;
+    await saveSession(req);
+
+    res.status(201).json({ user });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.status(409).json({
+        error: "Esse nome de usuário ou e-mail já está cadastrado."
+      });
+    }
+    console.error("Erro no cadastro:", err.message);
+    res.status(500).json({ error: "Não foi possível criar a conta." });
+  }
+});
+
+app.post("/api/login", sameOrigin, async (req, res) => {
+  try {
+    const identifier = String(req.body.identifier || "").trim();
+    const password = String(req.body.password || "");
+
+    const result = await pool.query(
+      `SELECT id, username, email, password_hash
+       FROM users
+       WHERE LOWER(email) = LOWER($1)
+          OR LOWER(username) = LOWER($1)
+       LIMIT 1`,
+      [identifier]
+    );
+
+    const account = result.rows[0];
+    const valid = account
+      ? await bcrypt.compare(password, account.password_hash)
+      : false;
+
+    if (!valid) {
+      return res.status(401).json({
+        error: "E-mail/usuário ou senha incorretos."
+      });
+    }
+
+    const user = {
+      id: account.id,
+      username: account.username,
+      email: account.email
+    };
+
+    await regenerateSession(req);
+    req.session.user = user;
+    await saveSession(req);
+
+    res.json({ user });
+  } catch (err) {
+    console.error("Erro no login:", err.message);
+    res.status(500).json({ error: "Não foi possível entrar." });
+  }
+});
+
+app.post("/api/logout", sameOrigin, async (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: "Não foi possível sair." });
+    }
+
+    res.clearCookie("connect.sid", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax"
+    });
+
+    res.json({ success: true });
+  });
+});
+
+app.get("/api/messages/:channel", requireAuth, async (req, res) => {
+  const channel = req.params.channel;
+
+  if (!channels.includes(channel)) {
+    return res.status(400).json({ error: "Canal inválido." });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT id, username, message, channel, created_at
+       FROM messages
+       WHERE channel = $1
+       ORDER BY id DESC
+       LIMIT 100`,
+      [channel]
+    );
+
+    res.json(result.rows.reverse());
+  } catch (err) {
+    console.error("Erro ao buscar mensagens:", err.message);
+    res.status(500).json({ error: "Não foi possível carregar as mensagens." });
+  }
+});
+
+// Somente usuários autenticados podem conectar o chat.
+io.use((socket, next) => {
+  const user = socket.request.session?.user;
+  if (!user) return next(new Error("Faça login para usar o chat."));
+  socket.user = user;
+  next();
+});
+
+io.on("connection", (socket) => {
+  socket.on("join channel", async (channel) => {
+    if (typeof channel !== "string" || !channels.includes(channel)) return;
+
+    for (const room of socket.rooms) {
+      if (channels.includes(room)) socket.leave(room);
+    }
+
+    socket.join(channel);
+    socket.emit("channel joined", channel);
+
+    try {
+      const result = await pool.query(
+        `SELECT id, username, message, channel, created_at
+         FROM messages
+         WHERE channel = $1
+         ORDER BY id DESC
+         LIMIT 100`,
+        [channel]
+      );
+      socket.emit("chat history", result.rows.reverse());
+    } catch (err) {
+      console.error("Erro no histórico:", err.message);
+      socket.emit("chat error", "Erro ao carregar o histórico.");
+    }
+  });
+
+  socket.on("send message", async (data) => {
+    try {
+      if (!data || typeof data !== "object") return;
+
+      const channel = data.channel;
+      const message = typeof data.message === "string"
+        ? data.message.trim()
+        : "";
+
+      if (!channels.includes(channel)) {
+        return socket.emit("chat error", "Canal inválido.");
+      }
+
+      if (!socket.rooms.has(channel)) {
+        return socket.emit("chat error", "Entre no canal antes de enviar.");
+      }
+
+      if (!message || message.length > 2000) {
+        return socket.emit("chat error", "A mensagem deve ter de 1 a 2000 caracteres.");
+      }
+
+      const result = await pool.query(
+        `INSERT INTO messages (username, message, channel)
+         VALUES ($1, $2, $3)
+         RETURNING id, username, message, channel, created_at`,
+        [socket.user.username, message, channel]
+      );
+
+      io.to(channel).emit("chat message", result.rows[0]);
+    } catch (err) {
+      console.error("Erro ao enviar mensagem:", err.message);
+      socket.emit("chat error", "Não foi possível enviar a mensagem.");
+    }
+  });
+});
+
+async function start() {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS messages (
-      message_id TEXT PRIMARY KEY,
-      channel TEXT NOT NULL,
-      socket_id TEXT,
-      client_id TEXT,
-      username TEXT NOT NULL,
-      message TEXT NOT NULL,
+    CREATE TABLE IF NOT EXISTS users (
+      id BIGSERIAL PRIMARY KEY,
+      username VARCHAR(24) NOT NULL UNIQUE,
+      email VARCHAR(254) NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS messages_channel_created_idx
-    ON messages (channel, created_at DESC)
+    CREATE TABLE IF NOT EXISTS messages (
+      id BIGSERIAL PRIMARY KEY,
+      username TEXT NOT NULL,
+      message TEXT NOT NULL,
+      channel TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
   `);
 
-  console.log("Tabela de mensagens pronta.");
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`NEXO online na porta ${PORT}`);
+  });
 }
 
-async function getHistory(channel) {
-  const result = await pool.query(
-    `SELECT message_id, channel, socket_id, client_id,
-            username, message, created_at
-     FROM messages
-     WHERE channel = $1
-     ORDER BY created_at DESC, message_id DESC
-     LIMIT 100`,
-    [channel]
-  );
-
-  return result.rows.reverse().map(row => ({
-    messageId: row.message_id,
-    id: row.socket_id,
-    clientId: row.client_id || "",
-    username: row.username,
-    channel: row.channel,
-    message: row.message,
-    time: row.created_at.toISOString()
-  }));
-}
-
-io.on("connection", socket => {
-  console.log("Usuário conectado:", socket.id);
-
-  let currentChannel = null;
-
-  socket.on("join channel", async channelId => {
-    try {
-      const channel = channels.find(
-        item => item.id === channelId
-      );
-
-      if (!channel) {
-        socket.emit("channel error", {
-          message: "Canal não encontrado."
-        });
-        return;
-      }
-
-      if (currentChannel) {
-        socket.leave(currentChannel);
-      }
-
-      currentChannel = channel.id;
-      socket.join(currentChannel);
-
-      socket.emit("channel joined", {
-        id: channel.id,
-        name: channel.name
-      });
-
-      const messages = await getHistory(channel.id);
-
-      if (currentChannel !== channel.id) return;
-
-      socket.emit("chat history", {
-        channel: channel.id,
-        messages
-      });
-
-      console.log(
-        "Histórico carregado:",
-        channel.id,
-        messages.length
-      );
-    } catch (error) {
-      console.error("Erro ao carregar histórico:", error);
-      socket.emit("chat error", {
-        message: "Erro ao carregar mensagens."
-      });
-    }
-  });
-
-  socket.on("chat message", async data => {
-    try {
-      if (!currentChannel || !data) return;
-      if (typeof data.message !== "string") return;
-
-      const message = data.message.trim();
-
-      if (!message || message.length > 2000) return;
-
-      const username =
-        typeof data.username === "string"
-          ? data.username.trim().slice(0, 24)
-          : "Membro";
-
-      const payload = {
-        messageId:
-          Date.now().toString(36) +
-          "-" +
-          Math.random().toString(36).slice(2, 10),
-        id: socket.id,
-        clientId:
-          typeof data.clientId === "string"
-            ? data.clientId.slice(0, 100)
-            : "",
-        username: username || "Membro",
-        channel: currentChannel,
-        message,
-        time: new Date().toISOString()
-      };
-
-      const result = await pool.query(
-        `INSERT INTO messages
-          (message_id, channel, socket_id, client_id,
-           username, message, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())
-         RETURNING created_at`,
-        [
-          payload.messageId,
-          payload.channel,
-          payload.id,
-          payload.clientId,
-          payload.username,
-          payload.message
-        ]
-      );
-
-      payload.time = result.rows[0].created_at.toISOString();
-
-      io.to(payload.channel).emit("chat message", payload);
-
-      console.log("Mensagem gravada:", payload.channel);
-    } catch (error) {
-      console.error("Erro ao gravar mensagem:", error);
-      socket.emit("chat error", {
-        message: "Não foi possível salvar a mensagem."
-      });
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Usuário desconectado:", socket.id);
-  });
+start().catch((err) => {
+  console.error("Falha ao iniciar NEXO:", err);
+  process.exit(1);
 });
-
-async function startServer() {
-  try {
-    await initializeDatabase();
-
-    server.listen(PORT, "0.0.0.0", () => {
-      console.log("NEXO online na porta:", PORT);
-    });
-  } catch (error) {
-    console.error("Falha ao iniciar servidor:", error);
-    process.exit(1);
-  }
-}
-
-startServer();

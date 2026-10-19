@@ -1,4 +1,3 @@
-
 const express = require("express");
 const http = require("http");
 const path = require("path");
@@ -11,15 +10,24 @@ const PgSession = require("connect-pg-simple")(session);
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-const PORT = process.env.PORT || 3000;
 
-console.log("Diagnóstico de variáveis:", {
-  DATABASE_URL_CONFIGURADA: Boolean(process.env.DATABASE_URL),
-  SESSION_SECRET_CONFIGURADA: Boolean(process.env.SESSION_SECRET)
+const PORT = process.env.PORT || 3000;
+const DATABASE_URL = process.env.DATABASE_URL;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
+console.log("Diagnóstico do NEXO:", {
+  node: process.version,
+  ambiente: process.env.NODE_ENV || "não definido",
+  DATABASE_URL_CONFIGURADA: Boolean(DATABASE_URL),
+  SESSION_SECRET_CONFIGURADA: Boolean(SESSION_SECRET)
 });
 
-if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
-  throw new Error("Falta uma variável de ambiente obrigatória. Confira o diagnóstico acima.");
+if (!DATABASE_URL || !SESSION_SECRET) {
+  console.error(
+    "ERRO: Configure DATABASE_URL e SESSION_SECRET " +
+    "em Environment no serviço correto do Render."
+  );
+  process.exit(1);
 }
 
 app.set("trust proxy", 1);
@@ -27,8 +35,8 @@ app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL.includes("localhost")
+  connectionString: DATABASE_URL,
+  ssl: /localhost|127\.0\.0\.1/.test(DATABASE_URL)
     ? false
     : { rejectUnauthorized: false }
 });
@@ -43,7 +51,7 @@ const sessionMiddleware = session({
     tableName: "session",
     createTableIfMissing: true
   }),
-  secret: process.env.SESSION_SECRET,
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -61,13 +69,19 @@ const channels = ["geral", "jogos", "tecnologia", "conversa"];
 
 function saveSession(req) {
   return new Promise((resolve, reject) => {
-    req.session.save((err) => err ? reject(err) : resolve());
+    req.session.save((err) => {
+      if (err) return reject(err);
+      resolve();
+    });
   });
 }
 
 function regenerateSession(req) {
   return new Promise((resolve, reject) => {
-    req.session.regenerate((err) => err ? reject(err) : resolve());
+    req.session.regenerate((err) => {
+      if (err) return reject(err);
+      resolve();
+    });
   });
 }
 
@@ -77,6 +91,7 @@ function requireAuth(req, res, next) {
       error: "Faça login para continuar."
     });
   }
+
   next();
 }
 
@@ -91,7 +106,9 @@ function sameOrigin(req, res, next) {
         });
       }
     } catch {
-      return res.status(403).json({ error: "Origem inválida." });
+      return res.status(403).json({
+        error: "Origem inválida."
+      });
     }
   }
 
@@ -99,7 +116,10 @@ function sameOrigin(req, res, next) {
 }
 
 app.get("/api/status", (req, res) => {
-  res.json({ app: "NEXO", status: "online" });
+  res.json({
+    app: "NEXO",
+    status: "online"
+  });
 });
 
 app.get("/api/channels", (req, res) => {
@@ -167,7 +187,10 @@ app.post("/api/register", sameOrigin, async (req, res) => {
     }
 
     console.error("Erro no cadastro:", err.message);
-    res.status(500).json({ error: "Não foi possível criar a conta." });
+
+    res.status(500).json({
+      error: "Não foi possível criar a conta."
+    });
   }
 });
 
@@ -186,6 +209,7 @@ app.post("/api/login", sameOrigin, async (req, res) => {
     );
 
     const account = result.rows[0];
+
     const valid = account
       ? await bcrypt.compare(password, account.password_hash)
       : false;
@@ -209,7 +233,10 @@ app.post("/api/login", sameOrigin, async (req, res) => {
     res.json({ user });
   } catch (err) {
     console.error("Erro no login:", err.message);
-    res.status(500).json({ error: "Não foi possível entrar." });
+
+    res.status(500).json({
+      error: "Não foi possível entrar."
+    });
   }
 });
 
@@ -231,31 +258,38 @@ app.post("/api/logout", sameOrigin, (req, res) => {
   });
 });
 
-app.get("/api/messages/:channel", requireAuth, async (req, res) => {
-  const channel = req.params.channel;
+app.get(
+  "/api/messages/:channel",
+  requireAuth,
+  async (req, res) => {
+    const channel = req.params.channel;
 
-  if (!channels.includes(channel)) {
-    return res.status(400).json({ error: "Canal inválido." });
+    if (!channels.includes(channel)) {
+      return res.status(400).json({
+        error: "Canal inválido."
+      });
+    }
+
+    try {
+      const result = await pool.query(
+        `SELECT id, username, message, channel, created_at
+         FROM messages
+         WHERE channel = $1
+         ORDER BY id DESC
+         LIMIT 100`,
+        [channel]
+      );
+
+      res.json(result.rows.reverse());
+    } catch (err) {
+      console.error("Erro ao buscar mensagens:", err.message);
+
+      res.status(500).json({
+        error: "Não foi possível carregar as mensagens."
+      });
+    }
   }
-
-  try {
-    const result = await pool.query(
-      `SELECT id, username, message, channel, created_at
-       FROM messages
-       WHERE channel = $1
-       ORDER BY id DESC
-       LIMIT 100`,
-      [channel]
-    );
-
-    res.json(result.rows.reverse());
-  } catch (err) {
-    console.error("Erro ao buscar mensagens:", err.message);
-    res.status(500).json({
-      error: "Não foi possível carregar as mensagens."
-    });
-  }
-});
+);
 
 io.use((socket, next) => {
   const user = socket.request.session?.user;
@@ -314,7 +348,10 @@ io.on("connection", (socket) => {
       }
 
       if (!socket.rooms.has(channel)) {
-        return socket.emit("chat error", "Entre no canal antes de enviar.");
+        return socket.emit(
+          "chat error",
+          "Entre no canal antes de enviar."
+        );
       }
 
       if (!message || message.length > 2000) {
@@ -340,6 +377,8 @@ io.on("connection", (socket) => {
 });
 
 async function start() {
+  await pool.query("SELECT 1");
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id BIGSERIAL PRIMARY KEY,
@@ -369,3 +408,12 @@ start().catch((err) => {
   console.error("Falha ao iniciar NEXO:", err.message);
   process.exit(1);
 });
+
+async function shutdown() {
+  server.close();
+  await pool.end();
+  process.exit(0);
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

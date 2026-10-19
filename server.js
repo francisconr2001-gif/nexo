@@ -3,17 +3,24 @@ const express = require("express");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
+const { Pool } = require("pg");
 
 const app = express();
 const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
-});
+const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  console.error("DATABASE_URL não configurada no Render.");
+  process.exit(1);
+}
+
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 const channels = [
   { id: "geral", name: "Comunidade NEXO" },
@@ -22,148 +29,201 @@ const channels = [
   { id: "conversa", name: "Ponto de Encontro" }
 ];
 
-// Histórico separado para cada canal.
-const messageHistory = Object.fromEntries(
-  channels.map(channel => [channel.id, []])
-);
-
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/api/status", (req, res) => {
-  res.json({
-    app: "NEXO",
-    status: "online",
-    chat: "ativo",
-    channels,
-    history: "ativo"
-  });
+app.get("/api/status", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({
+      app: "NEXO",
+      status: "online",
+      database: "connected"
+    });
+  } catch (error) {
+    console.error("Erro no banco:", error.message);
+    res.status(503).json({
+      app: "NEXO",
+      status: "degraded",
+      database: "disconnected"
+    });
+  }
 });
 
 app.get("/api/channels", (req, res) => {
   res.json(channels);
 });
 
-io.on("connection", (socket) => {
-  console.log("USUARIO CONECTADO:", socket.id);
+async function initializeDatabase() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS messages (
+      message_id TEXT PRIMARY KEY,
+      channel TEXT NOT NULL,
+      socket_id TEXT,
+      client_id TEXT,
+      username TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS messages_channel_created_idx
+    ON messages (channel, created_at DESC)
+  `);
+
+  console.log("Tabela de mensagens pronta.");
+}
+
+async function getHistory(channel) {
+  const result = await pool.query(
+    `SELECT message_id, channel, socket_id, client_id,
+            username, message, created_at
+     FROM messages
+     WHERE channel = $1
+     ORDER BY created_at DESC, message_id DESC
+     LIMIT 100`,
+    [channel]
+  );
+
+  return result.rows.reverse().map(row => ({
+    messageId: row.message_id,
+    id: row.socket_id,
+    clientId: row.client_id || "",
+    username: row.username,
+    channel: row.channel,
+    message: row.message,
+    time: row.created_at.toISOString()
+  }));
+}
+
+io.on("connection", socket => {
+  console.log("Usuário conectado:", socket.id);
 
   let currentChannel = null;
 
-  socket.on("join channel", (channelId) => {
-    console.log("ENTRADA NO CANAL:", channelId);
+  socket.on("join channel", async channelId => {
+    try {
+      const channel = channels.find(
+        item => item.id === channelId
+      );
 
-    const channel = channels.find(
-      item => item.id === channelId
-    );
+      if (!channel) {
+        socket.emit("channel error", {
+          message: "Canal não encontrado."
+        });
+        return;
+      }
 
-    if (!channel) {
-      socket.emit("channel error", {
-        message: "Canal não encontrado."
+      if (currentChannel) {
+        socket.leave(currentChannel);
+      }
+
+      currentChannel = channel.id;
+      socket.join(currentChannel);
+
+      socket.emit("channel joined", {
+        id: channel.id,
+        name: channel.name
       });
-      return;
+
+      const messages = await getHistory(channel.id);
+
+      if (currentChannel !== channel.id) return;
+
+      socket.emit("chat history", {
+        channel: channel.id,
+        messages
+      });
+
+      console.log(
+        "Histórico carregado:",
+        channel.id,
+        messages.length
+      );
+    } catch (error) {
+      console.error("Erro ao carregar histórico:", error);
+      socket.emit("chat error", {
+        message: "Erro ao carregar mensagens."
+      });
     }
+  });
 
-    // Sai do canal anterior.
-    if (currentChannel) {
-      socket.leave(currentChannel);
+  socket.on("chat message", async data => {
+    try {
+      if (!currentChannel || !data) return;
+      if (typeof data.message !== "string") return;
+
+      const message = data.message.trim();
+
+      if (!message || message.length > 2000) return;
+
+      const username =
+        typeof data.username === "string"
+          ? data.username.trim().slice(0, 24)
+          : "Membro";
+
+      const payload = {
+        messageId:
+          Date.now().toString(36) +
+          "-" +
+          Math.random().toString(36).slice(2, 10),
+        id: socket.id,
+        clientId:
+          typeof data.clientId === "string"
+            ? data.clientId.slice(0, 100)
+            : "",
+        username: username || "Membro",
+        channel: currentChannel,
+        message,
+        time: new Date().toISOString()
+      };
+
+      const result = await pool.query(
+        `INSERT INTO messages
+          (message_id, channel, socket_id, client_id,
+           username, message, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW())
+         RETURNING created_at`,
+        [
+          payload.messageId,
+          payload.channel,
+          payload.id,
+          payload.clientId,
+          payload.username,
+          payload.message
+        ]
+      );
+
+      payload.time = result.rows[0].created_at.toISOString();
+
+      io.to(payload.channel).emit("chat message", payload);
+
+      console.log("Mensagem gravada:", payload.channel);
+    } catch (error) {
+      console.error("Erro ao gravar mensagem:", error);
+      socket.emit("chat error", {
+        message: "Não foi possível salvar a mensagem."
+      });
     }
+  });
 
-    // Entra no novo canal.
-    currentChannel = channel.id;
-    socket.join(currentChannel);
+  socket.on("disconnect", () => {
+    console.log("Usuário desconectado:", socket.id);
+  });
+});
 
-    console.log("CANAL ATIVO:", currentChannel);
+async function startServer() {
+  try {
+    await initializeDatabase();
 
-    // Confirma a entrada.
-    socket.emit("channel joined", {
-      id: channel.id,
-      name: channel.name
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log("NEXO online na porta:", PORT);
     });
+  } catch (error) {
+    console.error("Falha ao iniciar servidor:", error);
+    process.exit(1);
+  }
+}
 
-    // Envia o histórico daquele canal.
-    socket.emit("chat history", {
-      channel: currentChannel,
-      messages: [...messageHistory[currentChannel]]
-    });
-
-    console.log(
-      "HISTORICO ENVIADO:",
-      currentChannel,
-      messageHistory[currentChannel].length,
-      "mensagens"
-    );
-  });
-
-  socket.on("chat message", (data) => {
-    if (!currentChannel) {
-      console.log("MENSAGEM BLOQUEADA: SEM CANAL");
-      return;
-    }
-
-    if (!data || typeof data.message !== "string") {
-      return;
-    }
-
-    const message = data.message.trim();
-
-    if (!message || message.length > 2000) {
-      return;
-    }
-
-    const username =
-      typeof data.username === "string"
-        ? data.username.trim().slice(0, 24)
-        : "Membro";
-
-    const payload = {
-      messageId:
-        Date.now().toString(36) +
-        "-" +
-        Math.random().toString(36).slice(2, 10),
-      id: socket.id,
-      clientId:
-        typeof data.clientId === "string"
-          ? data.clientId.slice(0, 100)
-          : "",
-      username: username || "Membro",
-      channel: currentChannel,
-      message,
-      time: new Date().toISOString()
-    };
-
-    // Guarda a mensagem no histórico do canal.
-    const history = messageHistory[currentChannel];
-
-    history.push(payload);
-
-    // Limita o histórico às últimas 100 mensagens.
-    if (history.length > 100) {
-      history.shift();
-    }
-
-    // Envia a mensagem para todos no canal.
-    io.to(currentChannel).emit("chat message", payload);
-
-    console.log(
-      "MENSAGEM SALVA E ENVIADA:",
-      currentChannel,
-      message
-    );
-  });
-
-  socket.on("disconnect", (reason) => {
-    console.log(
-      "USUARIO DESCONECTADO:",
-      socket.id,
-      reason
-    );
-  });
-});
-
-server.on("error", (error) => {
-  console.error("ERRO NO SERVIDOR:", error);
-});
-
-server.listen(PORT, "0.0.0.0", () => {
-  console.log("NEXO ONLINE NA PORTA:", PORT);
-});
+startServer();

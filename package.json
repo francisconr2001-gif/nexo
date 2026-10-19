@@ -2,16 +2,14 @@
 {
   "name": "nexo",
   "version": "1.0.0",
-  "description": "NEXO - Plataforma de comunicação em tempo real",
+  "description": "NEXO - Chat em tempo real",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "socket.io": "^4.8.1"
-  },
-  "engines": {
-    "node": ">=18"
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1",
+    "pg": "^8.16.3"
   }
 }

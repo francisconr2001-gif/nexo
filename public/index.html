@@ -1,691 +1,360 @@
 
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#101116">
+  <meta name="theme-color" content="#10111b">
   <title>NEXO — Conecte-se</title>
-  <style>
-    :root {
-      --bg: #101116;
-      --panel: #181a22;
-      --panel2: #20222c;
-      --line: #30323e;
-      --text: #f4f5fa;
-      --muted: #9a9cad;
-      --accent: #8b5cf6;
-      --accent2: #6d43df;
-      --green: #42d392;
-    }
 
-    * { box-sizing: border-box; }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, Arial, sans-serif;
+      background: #10111b;
+      color: #f5f6ff;
+      font-family: Arial, sans-serif;
       height: 100dvh;
+      display: flex;
+      justify-content: center;
       overflow: hidden;
     }
 
-    button, input, select { font: inherit; }
-    button { cursor: pointer; }
-
     .app {
-      height: 100dvh;
-      display: grid;
-      grid-template-columns: 68px 220px minmax(0, 1fr);
-    }
-
-    .servers {
-      background: #0b0c10;
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-      gap: 13px;
-      padding: 16px 8px;
-      border-right: 1px solid var(--line);
-    }
-
-    .logo {
-      width: 45px;
-      height: 45px;
-      display: grid;
-      place-items: center;
-      border-radius: 15px;
-      background: linear-gradient(135deg, #a78bfa, #6d43df);
-      font-weight: 900;
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .server {
-      border: 0;
-      width: 44px;
-      height: 44px;
-      border-radius: 15px;
-      color: white;
-      background: var(--panel2);
-      font-weight: 700;
-      transition: .2s;
-    }
-
-    .server:hover, .server.active {
-      background: var(--accent);
-      border-radius: 12px;
-    }
-
-    .sidebar {
-      background: var(--panel);
+      width: 100%;
+      max-width: 850px;
       display: flex;
       flex-direction: column;
-      min-width: 0;
-      border-right: 1px solid var(--line);
-    }
-
-    .side-head {
-      padding: 20px 15px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .brand { font-size: 21px; font-weight: 850; letter-spacing: 1px; }
-    .tagline { color: var(--muted); font-size: 12px; margin-top: 4px; }
-
-    .section-label {
-      padding: 20px 14px 8px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1.2px;
-    }
-
-    .nav {
-      border: 0;
-      margin: 2px 8px;
-      padding: 11px;
-      border-radius: 9px;
-      background: transparent;
-      color: var(--muted);
-      text-align: left;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .nav:hover, .nav.active {
-      background: #30264a;
-      color: white;
-    }
-
-    .channel { font-size: 14px; }
-
-    .profile {
-      margin-top: auto;
-      padding: 12px;
-      border-top: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      min-width: 0;
-    }
-
-    .avatar {
-      width: 36px;
-      height: 36px;
-      flex-shrink: 0;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #8b5cf6, #ec4899);
-      font-weight: 800;
-    }
-
-    .profile-info { min-width: 0; flex: 1; }
-    .profile-name { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
-    .online { color: var(--green); font-size: 11px; margin-top: 3px; }
-
-    .main {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
+      background: #171824;
       min-height: 0;
     }
 
-    .topbar {
-      min-height: 65px;
-      padding: 12px 20px;
+    header {
+      padding: 18px;
       display: flex;
       align-items: center;
       gap: 12px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(24,26,34,.8);
+      border-bottom: 1px solid #292a3b;
+      background: #191a29;
     }
 
-    .top-title { font-weight: 800; font-size: 16px; }
-    .top-sub { color: var(--muted); font-size: 12px; margin-top: 3px; }
-    .spacer { flex: 1; }
-
-    select, .small-btn {
-      background: var(--panel2);
-      border: 1px solid var(--line);
-      color: var(--text);
-      border-radius: 9px;
-      padding: 9px 10px;
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+      font-size: 22px;
+      background: linear-gradient(135deg, #8267ff, #36cfff);
+      color: white;
     }
 
-    .small-btn:hover { border-color: var(--accent); }
-
-    .content {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 2px;
     }
 
-    .welcome {
-      padding: 24px 22px 10px;
+    .subtitle {
+      color: #a4a6bd;
+      font-size: 12px;
+      margin-top: 5px;
     }
-
-    .welcome h1 { margin: 0 0 7px; font-size: clamp(22px, 4vw, 32px); }
-    .welcome p { margin: 0; color: var(--muted); font-size: 14px; }
-
-    .quick-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 9px;
-      padding: 16px 22px;
-    }
-
-    .action {
-      background: var(--panel2);
-      color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 13px;
-      font-size: 13px;
-    }
-
-    .action:hover { border-color: var(--accent); }
-    .action.primary { background: var(--accent2); border-color: var(--accent2); }
 
     .status {
-      margin: 0 22px 12px;
-      padding: 10px 12px;
-      border-radius: 9px;
-      background: #20222c;
-      color: var(--muted);
+      margin-left: auto;
+      color: #ffcc66;
       font-size: 12px;
     }
 
-    .messages {
+    .room {
+      padding: 15px 18px;
+      border-bottom: 1px solid #292a3b;
+    }
+
+    .room strong {
+      font-size: 15px;
+    }
+
+    .room p {
+      margin: 6px 0 0;
+      color: #a4a6bd;
+      font-size: 12px;
+    }
+
+    #messages {
       flex: 1;
-      min-height: 100px;
+      min-height: 0;
       overflow-y: auto;
-      padding: 14px 22px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .welcome {
+      text-align: center;
+      margin: auto 0;
+      color: #a4a6bd;
+      line-height: 1.7;
+    }
+
+    .welcome .symbol {
+      font-size: 48px;
+      margin-bottom: 10px;
     }
 
     .message {
-      display: flex;
-      gap: 11px;
-      margin: 16px 0;
-      align-items: flex-start;
+      background: #222435;
+      border: 1px solid #303247;
+      border-radius: 14px;
+      padding: 12px 14px;
+      max-width: 90%;
+      overflow-wrap: anywhere;
+      align-self: flex-start;
     }
 
-    .message .avatar { width: 35px; height: 35px; }
-    .message-body { min-width: 0; }
-    .message-meta { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap; }
-    .message-name { font-weight: 750; font-size: 13px; }
-    .message-time { color: var(--muted); font-size: 10px; }
-    .message-text { margin-top: 5px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+    .message.mine {
+      align-self: flex-end;
+      background: #34305e;
+      border-color: #51468c;
+    }
 
-    .composer-wrap { padding: 12px 20px 20px; }
+    .author {
+      color: #9c9aff;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .content {
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .time {
+      color: #a4a6bd;
+      font-size: 10px;
+      margin-top: 7px;
+      text-align: right;
+    }
+
     .composer {
+      padding: 14px;
+      border-top: 1px solid #292a3b;
       display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 8px;
-      border-radius: 13px;
-      background: var(--panel2);
-      border: 1px solid var(--line);
+      gap: 10px;
+      background: #191a29;
     }
 
-    .composer input {
-      min-width: 0;
+    #messageInput {
       flex: 1;
-      background: transparent;
-      border: 0;
+      min-width: 0;
+      border: 1px solid #36384e;
+      border-radius: 13px;
+      background: #222435;
+      color: white;
+      padding: 14px;
+      font-size: 15px;
       outline: none;
-      color: white;
-      padding: 10px 4px;
     }
 
-    .send {
-      border: 0;
-      background: var(--accent);
-      color: white;
-      border-radius: 9px;
-      padding: 10px 15px;
-      font-weight: 750;
+    #messageInput:focus {
+      border-color: #8270ff;
     }
 
-    .send:hover { background: var(--accent2); }
-    .mobile-menu { display: none; }
-    .hidden { display: none !important; }
+    #sendButton {
+      border: none;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #8267ff, #6355db);
+      color: white;
+      padding: 0 19px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-    @media (max-width: 700px) {
-      .app { grid-template-columns: 54px minmax(0, 1fr); }
-      .servers { padding: 12px 5px; gap: 10px; }
-      .server { width: 40px; height: 40px; }
-      .sidebar {
-        display: none;
-        position: fixed;
-        z-index: 10;
-        left: 54px;
-        top: 0;
-        bottom: 0;
-        width: min(250px, calc(100vw - 54px));
-        box-shadow: 10px 0 30px #0008;
+    #sendButton:disabled {
+      opacity: .45;
+    }
+
+    footer {
+      padding: 9px;
+      text-align: center;
+      font-size: 11px;
+      color: #777b96;
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 14px;
       }
-      .sidebar.open { display: flex; }
-      .mobile-menu { display: inline-block; }
-      .topbar { padding: 10px 12px; gap: 8px; }
-      .welcome { padding: 20px 14px 8px; }
-      .quick-actions { padding: 12px 14px; }
-      .status { margin: 0 14px 10px; }
-      .messages { padding: 10px 14px; }
-      .composer-wrap { padding: 10px 12px 14px; }
-      .lang-select { max-width: 95px; padding: 8px 5px; }
-      .action { padding: 9px; }
+
+      #messages {
+        padding: 13px;
+      }
+
+      .composer {
+        padding: 10px;
+      }
+
+      #sendButton {
+        padding: 0 14px;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="app">
-    <aside class="servers">
+  <main class="app">
+    <header>
       <div class="logo">N</div>
-      <button class="server active" title="NEXO">N</button>
-      <button class="server" title="Adicionar servidor" id="addServer">+</button>
-    </aside>
-
-    <aside class="sidebar" id="sidebar">
-      <div class="side-head">
-        <div class="brand">NEXO<span style="color:#a78bfa">.</span></div>
-        <div class="tagline" data-i18n="tagline">Seu espaço. Sua conexão.</div>
+      <div>
+        <h1>NEXO</h1>
+        <div class="subtitle">Sua conexão começa aqui</div>
       </div>
+      <div class="status" id="status">Conectando...</div>
+    </header>
 
-      <div class="section-label" data-i18n="navigation">NAVEGAÇÃO</div>
-      <button class="nav active" data-view="general"><span>⌂</span><span data-i18n="general">Geral</span></button>
-      <button class="nav" data-view="messages"><span>✉</span><span data-i18n="direct">Mensagens</span></button>
+    <section class="room">
+      <strong>🌐 Chat global</strong>
+      <p>Converse com quem estiver conectado ao NEXO.</p>
+    </section>
 
-      <div class="section-label" data-i18n="channels">CANAIS</div>
-      <button class="nav channel active" data-channel="geral"># <span>geral</span></button>
-      <button class="nav channel" data-channel="apresentacoes"># <span data-i18n="introductions">apresentações</span></button>
-      <button class="nav channel" data-channel="jogos"># <span data-i18n="games">jogos</span></button>
-      <button class="nav channel" data-channel="ideias"># <span data-i18n="ideas">ideias</span></button>
-
-      <div class="section-label" data-i18n="voice">VOZ</div>
-      <button class="nav" id="voiceChannel"><span>♫</span><span data-i18n="voiceRoom">Sala de voz</span></button>
-
-      <div class="profile">
-        <div class="avatar">N</div>
-        <div class="profile-info">
-          <div class="profile-name" id="profileName">Visitante</div>
-          <div class="online" data-i18n="local">● Online neste dispositivo</div>
-        </div>
-        <button class="small-btn" id="editName" title="Editar nome">✎</button>
+    <section id="messages" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <div class="symbol">✦</div>
+        <strong>Bem-vindo ao NEXO</strong>
+        <div>Envie sua primeira mensagem para começar.</div>
       </div>
-    </aside>
+    </section>
 
-    <main class="main">
-      <header class="topbar">
-        <button class="small-btn mobile-menu" id="menuBtn">☰</button>
-        <div>
-          <div class="top-title" id="channelTitle"># geral</div>
-          <div class="top-sub" data-i18n="channelDescription">Converse, compartilhe e conecte-se.</div>
-        </div>
-        <div class="spacer"></div>
-        <select class="lang-select" id="language" aria-label="Idioma">
-          <option value="pt">🇧🇷 PT</option>
-          <option value="en">🇺🇸 EN</option>
-          <option value="es">🇪🇸 ES</option>
-        </select>
-        <button class="small-btn" id="themeBtn" title="Alternar tema">☼</button>
-      </header>
+    <form class="composer" id="chatForm">
+      <input
+        id="messageInput"
+        type="text"
+        maxlength="2000"
+        placeholder="Escreva uma mensagem..."
+        autocomplete="off"
+        aria-label="Sua mensagem"
+        required
+      >
+      <button id="sendButton" type="submit" disabled>
+        Enviar
+      </button>
+    </form>
 
-      <section class="content">
-        <div class="welcome">
-          <h1 data-i18n="welcome">Bem-vindo ao NEXO 👋</h1>
-          <p data-i18n="welcomeText">Um lugar para conversar, jogar e criar juntos.</p>
-        </div>
+    <footer>NEXO © 2026 · Conectando pessoas</footer>
+  </main>
 
-        <div class="quick-actions">
-          <button class="action primary" id="newMessage">＋ <span data-i18n="newMessage">Nova mensagem</span></button>
-          <button class="action" id="micBtn">🎙 <span data-i18n="microphone">Testar microfone</span></button>
-          <button class="action" id="cameraBtn">📷 <span data-i18n="camera">Testar câmera</span></button>
-          <button class="action" id="screenBtn">▣ <span data-i18n="screen">Compartilhar tela</span></button>
-        </div>
-
-        <div class="status" id="status" role="status">
-          ✨ NEXO iniciado. Suas mensagens de teste ficam neste navegador.
-        </div>
-
-        <div class="messages" id="messages" aria-live="polite">
-          <div class="message">
-            <div class="avatar">N</div>
-            <div class="message-body">
-              <div class="message-meta">
-                <span class="message-name">NEXO</span>
-                <span class="message-time">agora</span>
-              </div>
-              <div class="message-text" data-i18n="firstMessage">Olá! Esta é sua primeira sala. Escreva uma mensagem abaixo para testar a interface.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="composer-wrap">
-          <form class="composer" id="chatForm">
-            <input id="messageInput" autocomplete="off" maxlength="1000"
-              placeholder="Envie uma mensagem para #geral..." aria-label="Mensagem">
-            <button class="send" type="submit" data-i18n="send">Enviar ↑</button>
-          </form>
-        </div>
-      </section>
-    </main>
-  </div>
+  <script src="/socket.io/socket.io.js"></script>
 
   <script>
-    const $ = (id) => document.getElementById(id);
+    const statusEl = document.getElementById("status");
+    const messagesEl = document.getElementById("messages");
+    const welcomeEl = document.getElementById("welcome");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("messageInput");
+    const sendButton = document.getElementById("sendButton");
 
-    const translations = {
-      pt: {
-        tagline:"Seu espaço. Sua conexão.", navigation:"NAVEGAÇÃO",
-        general:"Geral", direct:"Mensagens", channels:"CANAIS",
-        introductions:"apresentações", games:"jogos", ideas:"ideias",
-        voice:"VOZ", voiceRoom:"Sala de voz", local:"● Online neste dispositivo",
-        channelDescription:"Converse, compartilhe e conecte-se.",
-        welcome:"Bem-vindo ao NEXO 👋",
-        welcomeText:"Um lugar para conversar, jogar e criar juntos.",
-        newMessage:"Nova mensagem", microphone:"Testar microfone",
-        camera:"Testar câmera", screen:"Compartilhar tela",
-        firstMessage:"Olá! Esta é sua primeira sala. Escreva uma mensagem abaixo para testar a interface.",
-        send:"Enviar ↑", placeholder:"Envie uma mensagem para",
-        started:"✨ NEXO iniciado. Suas mensagens de teste ficam neste navegador.",
-        empty:"Escreva uma mensagem primeiro.", namePrompt:"Qual nome você quer usar?",
-        permission:"Permita o acesso solicitado pelo navegador.",
-        micOn:"Microfone conectado. Teste local concluído.",
-        cameraOn:"Câmera ligada neste dispositivo. Não está transmitindo para outras pessoas.",
-        screenOn:"Compartilhamento de tela iniciado localmente. Ainda não está sendo transmitido para outros usuários.",
-        stopped:"Teste encerrado.", directTitle:"Mensagens",
-        directDescription:"Protótipo local de mensagens.",
-        voiceNotice:"A sala de voz ainda não conecta outras pessoas. Vamos implementar chamadas depois.",
-        serverNotice:"Servidores compartilhados serão implementados em uma próxima etapa.",
-        generalName:"geral", dmMessage:"Modo de mensagens diretas: esta versão ainda não possui outros usuários conectados."
-      },
-      en: {
-        tagline:"Your space. Your connection.", navigation:"NAVIGATION",
-        general:"General", direct:"Messages", channels:"CHANNELS",
-        introductions:"introductions", games:"games", ideas:"ideas",
-        voice:"VOICE", voiceRoom:"Voice room", local:"● Online on this device",
-        channelDescription:"Chat, share, and connect.",
-        welcome:"Welcome to NEXO 👋",
-        welcomeText:"A place to chat, play, and create together.",
-        newMessage:"New message", microphone:"Test microphone",
-        camera:"Test camera", screen:"Share screen",
-        firstMessage:"Hello! This is your first room. Type a message below to test the interface.",
-        send:"Send ↑", placeholder:"Send a message to",
-        started:"✨ NEXO started. Test messages stay in this browser.",
-        empty:"Type a message first.", namePrompt:"What name would you like to use?",
-        permission:"Allow the requested access in your browser.",
-        micOn:"Microphone connected. Local test complete.",
-        cameraOn:"Camera is on this device. It is not streaming to others.",
-        screenOn:"Screen sharing started locally. It is not streaming to other users.",
-        stopped:"Test ended.", directTitle:"Messages",
-        directDescription:"Local messaging prototype.",
-        voiceNotice:"The voice room does not connect other people yet. We'll build calls later.",
-        serverNotice:"Shared servers will be implemented in a future step.",
-        generalName:"general", dmMessage:"Direct message mode: no other users are connected yet."
-      },
-      es: {
-        tagline:"Tu espacio. Tu conexión.", navigation:"NAVEGACIÓN",
-        general:"General", direct:"Mensajes", channels:"CANALES",
-        introductions:"presentaciones", games:"juegos", ideas:"ideas",
-        voice:"VOZ", voiceRoom:"Sala de voz", local:"● En línea en este dispositivo",
-        channelDescription:"Habla, comparte y conecta.",
-        welcome:"Bienvenido a NEXO 👋",
-        welcomeText:"Un lugar para conversar, jugar y crear juntos.",
-        newMessage:"Nuevo mensaje", microphone:"Probar micrófono",
-        camera:"Probar cámara", screen:"Compartir pantalla",
-        firstMessage:"¡Hola! Esta es tu primera sala. Escribe un mensaje abajo para probar la interfaz.",
-        send:"Enviar ↑", placeholder:"Envía un mensaje a",
-        started:"✨ NEXO iniciado. Los mensajes de prueba quedan en este navegador.",
-        empty:"Escribe un mensaje primero.", namePrompt:"¿Qué nombre quieres usar?",
-        permission:"Permite el acceso solicitado por el navegador.",
-        micOn:"Micrófono conectado. Prueba local completada.",
-        cameraOn:"La cámara está activa en este dispositivo. No transmite a otras personas.",
-        screenOn:"Compartir pantalla iniciado localmente. Aún no transmite a otros usuarios.",
-        stopped:"Prueba finalizada.", directTitle:"Mensajes",
-        directDescription:"Prototipo local de mensajes.",
-        voiceNotice:"La sala de voz aún no conecta a otras personas. Implementaremos las llamadas después.",
-        serverNotice:"Los servidores compartidos se implementarán en una próxima etapa.",
-        generalName:"general", dmMessage:"Modo de mensajes directos: aún no hay otros usuarios conectados."
-      }
-    };
+    let socket = null;
+    const clientId =
+      sessionStorage.getItem("nexoClientId") ||
+      (crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random());
 
-    let lang = "pt";
-    let currentChannel = "geral";
-    let userName = localStorage.getItem("nexo_name") || "Visitante";
-    let activeStream = null;
-    let activeView = "general";
-    let dark = true;
+    sessionStorage.setItem("nexoClientId", clientId);
 
-    $("profileName").textContent = userName;
-    document.querySelector(".profile .avatar").textContent = userName.charAt(0).toUpperCase();
-
-    function t(key) {
-      return translations[lang][key] || translations.pt[key] || key;
+    function updateStatus(connected) {
+      statusEl.textContent = connected
+        ? "● Online"
+        : "● Reconectando...";
+      statusEl.style.color = connected ? "#65e6a5" : "#ffcc66";
+      sendButton.disabled = !connected;
     }
 
-    function setStatus(message) {
-      $("status").textContent = message;
+    function addMessage(data) {
+      if (!data || typeof data.message !== "string") return;
+
+      welcomeEl?.remove();
+
+      const box = document.createElement("div");
+      box.className =
+        "message" + (data.clientId === clientId ? " mine" : "");
+
+      const author = document.createElement("div");
+      author.className = "author";
+      author.textContent =
+        data.clientId === clientId ? "Você" : "Membro do NEXO";
+
+      const content = document.createElement("div");
+      content.className = "content";
+      content.textContent = data.message;
+
+      const time = document.createElement("div");
+      time.className = "time";
+      const date = new Date(data.time);
+      time.textContent = Number.isNaN(date.getTime())
+        ? ""
+        : date.toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+
+      box.append(author, content, time);
+      messagesEl.appendChild(box);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function applyLanguage() {
-      document.documentElement.lang = lang === "pt" ? "pt-BR" : lang;
-      document.querySelectorAll("[data-i18n]").forEach(el => {
-        const key = el.dataset.i18n;
-        el.textContent = t(key);
-      });
-      $("messageInput").placeholder = t("placeholder") + " #" + currentChannel + "...";
-      $("channelTitle").textContent = activeView === "messages"
-        ? t("directTitle") : "# " + currentChannel;
-      if (activeView === "messages") {
-        document.querySelector(".top-sub").textContent = t("directDescription");
-      } else {
-        document.querySelector(".top-sub").textContent = t("channelDescription");
-      }
-      setStatus(t("started"));
-    }
-
-    function addMessage(name, text) {
-      const item = document.createElement("div");
-      item.className = "message";
-
-      const avatar = document.createElement("div");
-      avatar.className = "avatar";
-      avatar.textContent = name.charAt(0).toUpperCase();
-
-      const body = document.createElement("div");
-      body.className = "message-body";
-
-      const meta = document.createElement("div");
-      meta.className = "message-meta";
-
-      const sender = document.createElement("span");
-      sender.className = "message-name";
-      sender.textContent = name;
-
-      const time = document.createElement("span");
-      time.className = "message-time";
-      time.textContent = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
-
-      const messageText = document.createElement("div");
-      messageText.className = "message-text";
-      messageText.textContent = text;
-
-      meta.append(sender, time);
-      body.append(meta, messageText);
-      item.append(avatar, body);
-      $("messages").appendChild(item);
-      $("messages").scrollTop = $("messages").scrollHeight;
-    }
-
-    $("chatForm").addEventListener("submit", (event) => {
-      event.preventDefault();
-      const input = $("messageInput");
-      const text = input.value.trim();
-      if (!text) {
-        setStatus(t("empty"));
+    function connectChat() {
+      if (typeof io !== "function") {
+        statusEl.textContent = "Erro ao carregar o chat";
+        statusEl.style.color = "#ff7777";
         return;
       }
-      addMessage(userName, text);
-      input.value = "";
-      setStatus(t("started"));
-    });
 
-    $("language").addEventListener("change", (event) => {
-      lang = event.target.value;
-      applyLanguage();
-    });
+      socket = io();
 
-    $("editName").addEventListener("click", () => {
-      const name = prompt(t("namePrompt"), userName);
-      if (name && name.trim()) {
-        userName = name.trim().slice(0, 30);
-        localStorage.setItem("nexo_name", userName);
-        $("profileName").textContent = userName;
-        document.querySelector(".profile .avatar").textContent = userName.charAt(0).toUpperCase();
-      }
-    });
-
-    document.querySelectorAll("[data-channel]").forEach(button => {
-      button.addEventListener("click", () => {
-        currentChannel = button.dataset.channel;
-        activeView = "general";
-        document.querySelectorAll(".nav").forEach(n => n.classList.remove("active"));
-        button.classList.add("active");
-        $("channelTitle").textContent = "# " + currentChannel;
-        $("messageInput").placeholder = t("placeholder") + " #" + currentChannel + "...";
-        $("topbar");
-        document.querySelector(".top-sub").textContent = t("channelDescription");
-        $("sidebar").classList.remove("open");
-        $("messages").innerHTML = "";
-        addMessage("NEXO", t("firstMessage"));
-        setStatus(t("started"));
+      socket.on("connect", () => {
+        updateStatus(true);
       });
-    });
 
-    document.querySelector('[data-view="general"]').addEventListener("click", () => {
-      activeView = "general";
-      $("channelTitle").textContent = "# " + currentChannel;
-      document.querySelector(".top-sub").textContent = t("channelDescription");
-      $("messages").innerHTML = "";
-      addMessage("NEXO", t("firstMessage"));
-      document.querySelectorAll(".nav").forEach(n => n.classList.remove("active"));
-      document.querySelector('[data-view="general"]').classList.add("active");
-    });
+      socket.on("disconnect", () => {
+        updateStatus(false);
+      });
 
-    document.querySelector('[data-view="messages"]').addEventListener("click", () => {
-      activeView = "messages";
-      $("channelTitle").textContent = t("directTitle");
-      document.querySelector(".top-sub").textContent = t("directDescription");
-      $("messages").innerHTML = "";
-      addMessage("NEXO", t("dmMessage"));
-      document.querySelectorAll(".nav").forEach(n => n.classList.remove("active"));
-      document.querySelector('[data-view="messages"]').classList.add("active");
-      $("sidebar").classList.remove("open");
-    });
+      socket.on("connect_error", (error) => {
+        console.error("Erro de conexão:", error.message);
+        updateStatus(false);
+      });
 
-    $("newMessage").addEventListener("click", () => {
-      $("messageInput").focus();
-      setStatus(t("started"));
-    });
-
-    $("voiceChannel").addEventListener("click", () => setStatus(t("voiceNotice")));
-    $("addServer").addEventListener("click", () => setStatus(t("serverNotice")));
-    $("menuBtn").addEventListener("click", () => $("sidebar").classList.toggle("open"));
-
-    async function stopMedia() {
-      if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
-        activeStream = null;
-      }
+      socket.on("chat message", (data) => {
+        addMessage(data);
+      });
     }
 
-    $("micBtn").addEventListener("click", async () => {
-      await stopMedia();
-      try {
-        activeStream = await navigator.mediaDevices.getUserMedia({audio:true});
-        setStatus(t("micOn"));
-        activeStream.getTracks().forEach(track => track.stop());
-        activeStream = null;
-      } catch (error) {
-        setStatus(t("permission") + " (" + error.message + ")");
-      }
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const message = input.value.trim();
+
+      if (!message || !socket || !socket.connected) return;
+
+      socket.emit("chat message", {
+        message,
+        clientId
+      });
+
+      input.value = "";
+      input.focus();
     });
 
-    $("cameraBtn").addEventListener("click", async () => {
-      await stopMedia();
-      try {
-        activeStream = await navigator.mediaDevices.getUserMedia({video:true});
-        const video = document.createElement("video");
-        video.autoplay = true;
-        video.muted = true;
-        video.playsInline = true;
-        video.srcObject = activeStream;
-        video.style.cssText = "width:min(100%,420px);max-height:260px;object-fit:cover;border-radius:12px;margin:10px 22px;";
-        video.id = "cameraPreview";
-        const old = $("cameraPreview");
-        if (old) old.remove();
-        $("messages").appendChild(video);
-        setStatus(t("cameraOn"));
-        video.scrollIntoView({block:"nearest"});
-      } catch (error) {
-        setStatus(t("permission") + " (" + error.message + ")");
-      }
-    });
-
-    $("screenBtn").addEventListener("click", async () => {
-      await stopMedia();
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-          throw new Error("Este navegador não oferece compartilhamento de tela aqui.");
-        }
-        activeStream = await navigator.mediaDevices.getDisplayMedia({video:true});
-        setStatus(t("screenOn"));
-        activeStream.getVideoTracks()[0].addEventListener("ended", () => {
-          activeStream = null;
-          setStatus(t("stopped"));
-        });
-      } catch (error) {
-        setStatus(error.message || t("permission"));
-      }
-    });
-
-    $("themeBtn").addEventListener("click", () => {
-      dark = !dark;
-      document.documentElement.style.setProperty("--bg", dark ? "#101116" : "#f2f3f8");
-      document.documentElement.style.setProperty("--panel", dark ? "#181a22" : "#ffffff");
-      document.documentElement.style.setProperty("--panel2", dark ? "#20222c" : "#e8e9f1");
-      document.documentElement.style.setProperty("--text", dark ? "#f4f5fa" : "#20212a");
-      document.documentElement.style.setProperty("--muted", dark ? "#9a9cad" : "#606274");
-      document.documentElement.style.setProperty("--line", dark ? "#30323e" : "#d5d6e0");
-    });
-
-    applyLanguage();
+    connectChat();
   </script>
 </body>
 </html>

@@ -6,7 +6,12 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*"
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 
@@ -17,6 +22,7 @@ const channels = [
   { id: "conversa", name: "Ponto de Encontro" }
 ];
 
+// Histórico separado para cada canal.
 const messageHistory = Object.fromEntries(
   channels.map(channel => [channel.id, []])
 );
@@ -29,7 +35,8 @@ app.get("/api/status", (req, res) => {
     app: "NEXO",
     status: "online",
     chat: "ativo",
-    channels
+    channels,
+    history: "ativo"
   });
 });
 
@@ -37,13 +44,17 @@ app.get("/api/channels", (req, res) => {
   res.json(channels);
 });
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   console.log("USUARIO CONECTADO:", socket.id);
 
   let currentChannel = null;
 
-  socket.on("join channel", channelId => {
-    const channel = channels.find(item => item.id === channelId);
+  socket.on("join channel", (channelId) => {
+    console.log("ENTRADA NO CANAL:", channelId);
+
+    const channel = channels.find(
+      item => item.id === channelId
+    );
 
     if (!channel) {
       socket.emit("channel error", {
@@ -52,33 +63,52 @@ io.on("connection", socket => {
       return;
     }
 
+    // Sai do canal anterior.
     if (currentChannel) {
       socket.leave(currentChannel);
     }
 
+    // Entra no novo canal.
     currentChannel = channel.id;
     socket.join(currentChannel);
 
-    console.log("CANAL CONFIRMADO:", currentChannel);
+    console.log("CANAL ATIVO:", currentChannel);
 
+    // Confirma a entrada.
     socket.emit("channel joined", {
       id: channel.id,
       name: channel.name
     });
 
+    // Envia o histórico daquele canal.
     socket.emit("chat history", {
       channel: currentChannel,
-      messages: messageHistory[currentChannel]
+      messages: [...messageHistory[currentChannel]]
     });
+
+    console.log(
+      "HISTORICO ENVIADO:",
+      currentChannel,
+      messageHistory[currentChannel].length,
+      "mensagens"
+    );
   });
 
-  socket.on("chat message", data => {
-    if (!currentChannel) return;
-    if (!data || typeof data.message !== "string") return;
+  socket.on("chat message", (data) => {
+    if (!currentChannel) {
+      console.log("MENSAGEM BLOQUEADA: SEM CANAL");
+      return;
+    }
+
+    if (!data || typeof data.message !== "string") {
+      return;
+    }
 
     const message = data.message.trim();
 
-    if (!message || message.length > 2000) return;
+    if (!message || message.length > 2000) {
+      return;
+    }
 
     const username =
       typeof data.username === "string"
@@ -86,6 +116,10 @@ io.on("connection", socket => {
         : "Membro";
 
     const payload = {
+      messageId:
+        Date.now().toString(36) +
+        "-" +
+        Math.random().toString(36).slice(2, 10),
       id: socket.id,
       clientId:
         typeof data.clientId === "string"
@@ -97,23 +131,36 @@ io.on("connection", socket => {
       time: new Date().toISOString()
     };
 
-    messageHistory[currentChannel].push(payload);
+    // Guarda a mensagem no histórico do canal.
+    const history = messageHistory[currentChannel];
 
-    if (messageHistory[currentChannel].length > 100) {
-      messageHistory[currentChannel].shift();
+    history.push(payload);
+
+    // Limita o histórico às últimas 100 mensagens.
+    if (history.length > 100) {
+      history.shift();
     }
 
+    // Envia a mensagem para todos no canal.
     io.to(currentChannel).emit("chat message", payload);
 
-    console.log("MENSAGEM ENVIADA:", currentChannel);
+    console.log(
+      "MENSAGEM SALVA E ENVIADA:",
+      currentChannel,
+      message
+    );
   });
 
-  socket.on("disconnect", reason => {
-    console.log("USUARIO DESCONECTADO:", socket.id, reason);
+  socket.on("disconnect", (reason) => {
+    console.log(
+      "USUARIO DESCONECTADO:",
+      socket.id,
+      reason
+    );
   });
 });
 
-server.on("error", error => {
+server.on("error", (error) => {
   console.error("ERRO NO SERVIDOR:", error);
 });
 
